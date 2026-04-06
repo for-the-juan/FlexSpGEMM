@@ -1,39 +1,31 @@
-# TileSpGEMM
-
+# FlexSpGEMM
  
 
-**TileSpGEMM** is an open source code that uses a tiled structure to optimize general sparse matrix-matrix multiplication (SpGEMM) on GPUs. 
+**FlexSpGEMM** is an open-source project that optimizes general sparse matrix-matrix multiplication (SpGEMM) on GPUs. It leverages machine learning methods to predict and adaptively select flexible tile sizes, enabling efficient computation across diverse sparse matrix workloads.
 
 
 -------------------
 ## Paper information
 
-Yuyao Niu, Zhengyang Lu, Haonan Ji, Shuhui Song, Zhou Jin, and Weifeng Liu. 2022. TileSpGEMM: A Tiled Algorithm for Parallel Sparse General Matrix-Matrix Multiplication on GPUs. In 27th ACM SIGPLAN Symposium on Principles and Practice of Parallel Programming (PPoPP ’22), 17 pages. DOI:  https://doi.org/10.1145/3503221.3508431
+Ruiyang Chen, Hangcheng Dong, Zhuoran Song, Rui Ma, Yuliang Chen, Shuyun Gui, Bangqi Fu, Xiaoyao Liang and Haibing Guan. 2026. FlexSpGEMM: Adaptive Tiling and Hybrid Execution for SpGEMM on Modern GPUs. In The International Conference for High Performance Computing, Networking, Storage, and Analysis (SC ’26), 13 pages. 
+<!--TODO-->
+<!--DOI:  N/A-->
 
 ## Contact us
 
-If you have any questions about running the code, please contact Yuyao Niu. 
+If you have any questions about running the code, please contact Ruiyang Chen and Hangcheng Dong. 
 
-E-mail: yuyao.niu.phd@gmail.com
+E-mail: chenruiyang@sjtu.edu.cn, donghangcheng@sjtu.edu.cn
 
 ## Introduction
 
-General sparse matrix-matrix multiplication(SpGEMM) executes C=AB, where A, B and C are all sparse matrices. TileSpGEMM sparsifies the tiled method in dense general matrix-matrix multiplication (GEMM) and saves each non-empty tile in a sparse form. By this way, the three performance issues of load imbalance, allocating proper size for intermediate products and designing a sparse accumulator can be resolved. Several optimization techniques, such as binary search for set intersection, bit mask operations for symbolic SpGEMM, and an adaptive method for selecting sparse or dense accumulator in on-chip memory, are also developed to improve efficiency. TileSpGEMM provides a version of CUDA on a high parallelism currently. 
+General sparse matrix-matrix multiplication(SpGEMM) executes C=AB, where A, B and C are all sparse matrices. FlexSpGEMM is a Flexible machine learning (ML) guided SpGEMM framework for modern GPUs. In the offline phase, we propose a ML-based predictor to identify both the tiling parameter and the associated hardware path based on the input matrices. In the online phase, a hybrid execution mechanism coordinates the cooperative use of CUDA cores and Tensor cores at tile granularity. To further reduce the format translation overhead on the Tensor core path, FlexSpGEMM introduces a speculative dense tile format that pre-constructs dense replicas only for a subset of input tiles with high potential benefit, and combines this design with lightweight runtime densification to enable efficient access. 
 
-
-<!-- ## Structure
-```
-beidoublas/README     instructions on installation
-beidoublas/src        C source code, to be compiled into libbeidoublas.so
-beidoublas/test       testing code
-beidoublas/Makefile   top-level Makefile that does installation and testing
-``` -->
-
-## Installation
+## Preparation Dataset and Installation
 
 <!-- To use this code, you need to modify the Makefile with correct g++ installation path and use make for automatic installation. -->
 To better reproduce experiment results, we suggest an NVIDIA GPU with compute capability 8.6.
-TileSpGEMM evaluation requires the CUDA GPU driver, the nvcc CUDA compiler, and the cuSPARSE library, all of them are included with the CUDA Toolkit. The artifacts have been tested on Ubuntu 18.04/20.04, and are expected to run correctly under other Linux distributions.
+FlexSpGEMM evaluation requires the CUDA GPU driver, the nvcc CUDA compiler, and the cuSPARSE library, all of them are included with the CUDA Toolkit. The artifacts have been tested on Ubuntu 18.04/22.04, and are expected to run correctly under other Linux distributions.
 
 ## Execution of TileSpGEMM
 Our test programs currently support input files encoded using the matrix market format. All matrix market datasets used in this evaluation are publicly available from the SuiteSparse Matrix Collection. 
@@ -48,36 +40,27 @@ Our test programs currently support input files encoded using the matrix market 
 
 ## Output information
 
-Lines 1-2 output the input matrix's information including the path of matrix file, The number of rows, columns and nonzeros.
+The \[Device\] part prints the GPU device information, including the device ID, device name, and clock rate (in MHz).
 
-Line 3 prints the file loading time (in seconds).
+The \[Input Matrix\] part prints the input matrix's information, including the path of the matrix file, the dimension (number of rows and columns), the number of nonzeros, and the matrix loading time (in seconds).
 
-Line 4 prints the size of tile used in our TileSpGEMM algorithm.
+The [Tiling Configuration] part prints the tile size (TILE_SIZE_M × TILE_SIZE_N) used in our FlexSpGEMM algorithm.
 
-Line 5 prints the number of floating point operations during the multiplication.
+The \[Preprocessing\] part prints the NNZ upper bound of the output matrix C (nnzCub), the runtime of transforming the input matrix from the CSR format to our tiled data structure (in milliseconds), and the memory consumption (in megabytes) of different data structures, including the CSR format, the dense format, the TileSpGEMM tiled format, and the FlexSpGEMM tiled format.
 
-Line 6 prints the runtime of transforming the input matrix from the CSR format to our tiled data structure (in millisec- onds) (Figure 12 in our paper).
+The [Symbolic Stage] part prints the runtime of the symbolic stage (in milliseconds), which determines the sparsity structure of the output matrix C, as well as the classification statistics of output tiles, including the tile type (Tiny, Small, Large, Dense, Full), the number of tiles in each category, the corresponding NNZ threshold, and the number of threads assigned to each category.
 
-Line 7 prints TileSpGEMM data structure's space consump- tion (in million bytes) (Figure 11 in our paper).
+The [Numeric Stage] part prints the runtime of the numeric stage (in milliseconds), which computes the actual numerical values of the output matrix C.
 
-Lines 8-14 print execution time (in milliseconds) of the three algorithm steps and all memory allocation on CPU and GPU (Figure 10 in our paper).
+The \[Malloc\] part prints the time spent on memory allocation (in milliseconds) during the computation.
 
-Line 15 prints the number of tiles of the resulting matrix C. 
+The [FlexSpGEMM Summary] part prints the number of non-empty output tiles, the number of nonzeros of the resulting matrix C, the total FlexSpGEMM runtime (in milliseconds), and the throughput (in GFlops).
 
-Line 16 prints the number of nonzeros of the resulting matrix C.
+The [Baseline: cuSPARSE SpGEMM] part prints the cuSPARSE baseline results, including the total runtime (in milliseconds), throughput (in GFlops), the number of nonzeros of the output matrix C, the NNZ upper bound, and the compression rate.
 
-Line 17 prints TileSpGEMM runtime (in milliseconds) and performance (in GFlOPs) (Figures 6 and 7 in our paper).
+The [Correctness Validation] part prints the correctness validation results by comparing our output with the reference solution generated by cuSPARSE, checking the NNZ count, the row pointer array, and the column index and value arrays.
 
-Line 18 prints the checking result after comparing our output with the one generated by cuSPARSE.
+The \[Speedup\] part prints the speedup of FlexSpGEMM over the cuSPARSE baseline, computed as the ratio of their total runtimes.
 
 ## Release version
-Jan 3,2022 Version Alpha
-
-
-
-
- 
-
-
-
-
+Apr 6,2026 Version Alpha

@@ -174,7 +174,8 @@ int spgemm_cusparse(const int mA,
     //--------------------------------------------------------------------------
 
     //  - cuda SpGEMM start!
-    printf(" - cuda SpGEMM start! Benchmark runs %i times.\n", BENCH_REPEAT);
+    printf("  Benchmark cuSPARSE Runs  : %d\n", BENCH_REPEAT);
+    printf("  Status                   : Running...\n");
 
     if (check_result && BENCH_REPEAT > 1)
     {
@@ -205,16 +206,19 @@ int spgemm_cusparse(const int mA,
     cudaDeviceSynchronize();
     gettimeofday(&t2, NULL);
 
-    printf(" - cuda SpGEMM completed!\n\n");
+    printf("  Status                   : Completed.\n");
     double time_cuda_spgemm = (t2.tv_sec - t1.tv_sec) * 1000.0 + (t2.tv_usec - t1.tv_usec) / 1000.0;
     time_cuda_spgemm /= BENCH_REPEAT;
     *time_segmerge = time_cuda_spgemm;
     *compression_rate = (double)nnzCub / (double)*nnzC;
     *gflops_segmerge = 2 * (double)nnzCub / (1e6 * time_cuda_spgemm);
-    printf("nnzC = %i, nnzCub = %lld, Compression rate = %4.2f\n",
-           *nnzC, nnzCub, *compression_rate);
-    printf("CUDA  cuSPARSE SpGEMM runtime is %4.4f ms, GFlops = %4.4f\n",
-           time_cuda_spgemm, *gflops_segmerge);
+    printf("  Total Runtime            : %.4f ms\n",   time_cuda_spgemm);
+    printf("  Throughput               : %.4f GFlops\n", *gflops_segmerge);
+    printf("  NNZ (C)                  : %lld\n",     *nnzC);
+    printf("  NNZ Upper Bound          : %lld\n",     nnzCub);
+    printf("  Compression Rate         : %.2f\n",     *compression_rate);
+    printf("\n");
+    printf("--------------------------------------------------------------------------------\n");
 
     // validate C = AB
 
@@ -223,20 +227,17 @@ int spgemm_cusparse(const int mA,
         if (*nnzC <= 0)
         {
             printf("cuSPARSE failed!\n");
-            return 0;
+            return -1;
         }
         else
         {
-            printf("\nValidating results...\n");
+            printf("\n[Correctness Validation]\n");
+            // nnzC check
             if (*nnzC != nnzC_golden)
-            {
-
-                printf("[NOT PASSED] nnzC = %i, nnzC_golden = %i\n", *nnzC, nnzC_golden);
-            }
+                printf("  ✗  NNZ count             : FAILED  "
+                       "(got %d, expected %d)\n", *nnzC, nnzC_golden);
             else
-            {
-                printf("[PASSED] nnzC = %i\n", *nnzC);
-            }
+                printf("  ✓  NNZ count             : PASSED  (%d)\n", *nnzC);
 
             int *h_csrRowPtrC = (int *)malloc((mC + 1) * sizeof(int));
             int *h_csrColIdxC = (int *)malloc(*nnzC * sizeof(int));
@@ -246,7 +247,7 @@ int spgemm_cusparse(const int mA,
             cudaMemcpy(h_csrColIdxC, d_csrColIdxC, *nnzC * sizeof(int), cudaMemcpyDeviceToHost);
             cudaMemcpy(h_csrValC, d_csrValC, *nnzC * sizeof(VALUE_TYPE), cudaMemcpyDeviceToHost);
 
-            int errcounter = 0;
+            int errcounter_row = 0;
             for (int i = 0; i < mC + 1; i++)
             {
                 if (h_csrRowPtrC[i] != h_csrRowPtrC_golden[i])
@@ -254,20 +255,17 @@ int spgemm_cusparse(const int mA,
                     if (h_csrRowPtrC[i] < 0)
                     {
                         printf("cuSPARSE failed!\n");
-                        return 0;
+                        return -1;
                     }
                     else{
-                    errcounter++;}
+                    errcounter_row++;}
                 }
             }
-            if (errcounter != 0)
-            {
-                printf("[NOT PASSED] row_pointer, #err = %i\n", errcounter);
-            }
+            if (errcounter_row != 0)
+                printf("  ✗  Row pointer array     : FAILED  (#err = %d)\n",
+                        errcounter_row);
             else
-            {
-                printf("[PASSED] row_pointer\n");
-            }
+                printf("  ✓  Row pointer array     : PASSED\n");
 
             /*for (int i = 0; i < mC; i++)
         {
@@ -276,25 +274,37 @@ int spgemm_cusparse(const int mA,
                                                      h_csrRowPtrC[i+1]-h_csrRowPtrC[i]);
         }*/
 
-            errcounter = 0;
+            int errcounter_colval = 0;
             for (int j = 0; j < *nnzC; j++)
             {
                 if (h_csrColIdxC[j] != h_csrColIdxC_golden[j]) //|| h_csrValC[j] != h_csrValC_golden[j])
                 {
                     //    printf("h_csrColIdxC[j] = %i,  h_csrColIdxC_golden[j] = %i\n",h_csrColIdxC[j] ,h_csrColIdxC_golden[j]);
-                    errcounter++;
+                    errcounter_colval++;
                 }
             }
 
-            if (errcounter != 0)
+            if (errcounter_colval != 0)
+                printf("  ✗  Column idx & values   : FAILED  "
+                       "(#err = %d, %.2f%% of NNZ)\n", errcounter_colval,
+                        100.0 * (double)errcounter_colval / (double)(*nnzC));
+            else
+                printf("  ✓  Column idx & values   : PASSED\n");
+                printf("\n");
+
+            if (*nnzC == nnzC_golden && errcounter_row == 0 && errcounter_colval == 0)
             {
-                printf("[NOT PASSED] column_index & value, #err = %i (%4.2f%% #nnz)\n",
-                       errcounter, 100.0 * (double)errcounter / (double)(*nnzC));
+                printf("================================================================================\n");
+                printf("  All checks passed. FlexSpGEMM produces numerically correct results.\n");
+                printf("================================================================================\n");
             }
             else
             {
-                printf("[PASSED] column_index & value\n");
+                printf("================================================================================\n");
+                printf("  [WARNING] Validation FAILED. Please check the output above for details.\n");
+                printf("================================================================================\n");
             }
+            printf("\n");
 
             free(h_csrRowPtrC);
             free(h_csrColIdxC);

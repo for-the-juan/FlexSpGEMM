@@ -9,17 +9,6 @@
 using namespace nvcuda;
 namespace cg = cooperative_groups;
 
-// template <int N>
-// __forceinline__ __device__ cg::thread_block_tile<N> createTileGroup() {    
-//     cg::thread_block block = cg::this_thread_block();
-    
-//     if constexpr (N <= 32) {
-//         return cg::tiled_partition<N>(block);
-//     } else {
-//         return cg::experimental::tiled_partition<N>(block);
-//     }
-// }
-
 __device__ __forceinline__
 size_t align_up(size_t x, size_t a) {
     return (x + a - 1) & ~(a - 1);
@@ -98,9 +87,6 @@ __forceinline__ __device__ int binary_search_exact_kernel(const int *d_array, in
         else
             r = m - 1;
     }
-
-    // if we reach here, then element was
-    // not present
     return -1;
 }
 
@@ -123,9 +109,6 @@ __forceinline__ __device__ int binary_search_exact_kernel_v2(const int *s_array,
         else
             r = m - 1;
     }
-
-    // if we reach here, then element was
-    // not present
     return -1;
 }
 
@@ -147,9 +130,6 @@ __forceinline__ __device__ int binary_search_exact_uchar_kernel(const unsigned c
         else
             r = m - 1;
     }
-
-    // if we reach here, then element was
-    // not present
     return -1;
 }
 
@@ -171,9 +151,6 @@ __forceinline__ __device__ int binary_search_exact_ushort_kernel(const uint16_t 
         else
             r = m - 1;
     }
-
-    // if we reach here, then element was
-    // not present
     return -1;
 }
 
@@ -2104,12 +2081,6 @@ __global__ void tile_spgemm_step4_cuda_sparse_kernel_adaptive_warp(int *d_blkrow
                         int cnt = binary_search_exact_auto_kernel(s_blkcsr_Idx_C_local + blkoffseta, 0, blkoffseta_stop - blkoffseta - 1, colidx);
                         if (cnt != -1){
                             atomicAdd(&d_blkcsr_Val_C[nnzcstart + blkoffseta + cnt], val * valb);
-                            // if (!blockIdx.x && threadIdx.x < 32)
-                            //     printf("T-Idx: %d, blkoffseta: %d, cnt: %d, blkoffseta + cnt: %d\n", threadIdx.x, blkoffseta, cnt, blkoffseta + cnt);
-                            // atomicAdd(&s_blkcsr_Val_C_local[blkoffseta + cnt], val * valb);
-                            // s_blkcsr_Val_C_local[blkoffseta + 1] += 1.0;
-                            // double temp = s_blkcsr_Idx_C_local[blkoffseta + cnt] * val_final;
-                            // double temp_val = val_final;
                         }
                     }
                 }
@@ -2636,7 +2607,6 @@ __device__ __forceinline__ int acquire_shared_slot(int *slot_locks, int num_slot
 __device__ __forceinline__ void release_shared_slot(int *slot_locks, int slot_id, int warp_id) {
     if (slot_id >= 0) {
         atomicExch(&slot_locks[slot_id], SLOT_FREE);
-        // printf("Release: warp_id = %d, slot_id = %d\n", warp_id, slot_id);
     }
 }
 
@@ -2648,12 +2618,8 @@ __device__ __forceinline__ int acquire_shared_slot_spin(int *slot_locks, int num
     while (true) {
         slot_id = acquire_shared_slot(slot_locks, num_slots);
         if (slot_id >= 0) {
-            // printf warp_id slot_id
-            // printf("Acquire: warp_id = %d, slot_id = %d\n", warp_id, slot_id);
             return slot_id;
         }
-        // spin_count++;
-        // if (spin_count > 10000000 && lane_id == 0) printf("spin_count: %d\n", spin_count);
     }
     return -1;  // Timeout
 }
@@ -3334,7 +3300,7 @@ void tilespgemm(SMatrixA *matrixA,
                 double *time_tile,
                 double *gflops_tile,
                 char *filename,
-                double *time_step1, double *time_step2, double *time_step3, double *time_malloc)
+                double *time_symbolic, double *time_numeric, double *time_malloc)
 {
     int *d_blkrowptrA;
     int *d_blkcolidxA;
@@ -3487,6 +3453,7 @@ void tilespgemm(SMatrixA *matrixA,
 
 #if TIMING
         *time_malloc = 0;
+        *time_symbolic = 0;
         gettimeofday(&t2, NULL);
         *time_malloc += (t2.tv_sec - t1.tv_sec) * 1000.0 + (t2.tv_usec - t1.tv_usec) / 1000.0;
 #endif
@@ -3527,7 +3494,7 @@ void tilespgemm(SMatrixA *matrixA,
 #if TIMING
         cudaDeviceSynchronize();
         gettimeofday(&t2, NULL);
-        *time_step1 = (t2.tv_sec - t1.tv_sec) * 1000.0 + (t2.tv_usec - t1.tv_usec) / 1000.0;
+        *time_symbolic += (t2.tv_sec - t1.tv_sec) * 1000.0 + (t2.tv_usec - t1.tv_usec) / 1000.0;
 #endif
 
 
@@ -3543,7 +3510,6 @@ void tilespgemm(SMatrixA *matrixA,
         cudaMemset(d_has_dense_calculated, 0, numblkC * sizeof(bool));
 
 #if TIMING
-
         gettimeofday(&t2, NULL);
         *time_malloc += (t2.tv_sec - t1.tv_sec) * 1000.0 + (t2.tv_usec - t1.tv_usec) / 1000.0;
 #endif
@@ -3585,12 +3551,7 @@ void tilespgemm(SMatrixA *matrixA,
 #if TIMING
         cudaDeviceSynchronize();
         gettimeofday(&t2, NULL);
-        *time_step1 += (t2.tv_sec - t1.tv_sec) * 1000.0 + (t2.tv_usec - t1.tv_usec) / 1000.0;
-        if (ri == 0)
-        {
-            printf("step1 ----Calculate the number and tile-column index of tiles of matrixC---\n");
-            printf("step1 ---------------------- Runtime is  %.2f ms-------------------------\n", *time_step1);
-        }
+        *time_symbolic += (t2.tv_sec - t1.tv_sec) * 1000.0 + (t2.tv_usec - t1.tv_usec) / 1000.0;
 
 #endif
 
@@ -3599,9 +3560,6 @@ void tilespgemm(SMatrixA *matrixA,
 #endif
 
         long long int lengthC =  (long long int)numblkC * TILE_SIZE_M;
-
-        // printf("numblkC=%d\n", numblkC);
-        // printf("lengthC=%lld\n", lengthC);
 
         TILE_CSR_PTR_TYPE *d_blkcsr_Ptr_C;
         cudaMalloc((void **)&d_blkcsr_Ptr_C, lengthC * sizeof(TILE_CSR_PTR_TYPE));
@@ -3718,11 +3676,13 @@ void tilespgemm(SMatrixA *matrixA,
 #if TIMING
         cudaDeviceSynchronize();
         gettimeofday(&t2, NULL);
-        *time_step2 = (t2.tv_sec - t1.tv_sec) * 1000.0 + (t2.tv_usec - t1.tv_usec) / 1000.0;
+        *time_symbolic += (t2.tv_sec - t1.tv_sec) * 1000.0 + (t2.tv_usec - t1.tv_usec) / 1000.0;
         if (ri == 0)
         {
-            printf("\nstep2 --------Calculate the number of nonzeros of each tile of matrixC-----\n");
-            printf("step2 ---------------------- Runtime is  %.2f ms-------------------------\n", *time_step2);
+            printf("\n[Symbolic Stage]\n");
+            printf("  Runtime                  : %.2f ms\n", *time_symbolic);
+            printf("\n");
+            printf("--------------------------------------------------------------------------------\n");
         }
 #endif
 
@@ -3752,14 +3712,29 @@ void tilespgemm(SMatrixA *matrixA,
         *time_malloc += (t2.tv_sec - t1.tv_sec) * 1000.0 + (t2.tv_usec - t1.tv_usec) / 1000.0;
 #endif
 
-    printf("Number: Tiny: %d, Sml: %d, Lrg: %d, Dns: %d, Ful: %d\n", blksmem_tny_cnt, blksmem_sml_cnt, blksmem_lrg_cnt, blksmem_dns_cnt, blksmem_ful_cnt);
-    printf("Threshold: Tiny: %d, Sml: %d, Lrg: %d, Dns: %d, Ful: %d\n", SMEM_TNY_TH, SMEM_SML_TH, SMEM_LRG_TH, SMEM_DNS_TH, TILE_SIZE_M * TILE_SIZE_M);
     // THREADS_USED may not exceed 32, otherwise intersection_binarysearch_kernel() will fail
     const int THREADS_USED_TNY = THREADS_USED_TNY_TH < 32 ? THREADS_USED_TNY_TH : 32;
     const int THREADS_USED_SML = THREADS_USED_SML_TH < 32 ? THREADS_USED_SML_TH : 32;
     const int THREADS_USED_LRG = THREADS_USED_LRG_TH < 32 ? THREADS_USED_LRG_TH : 32;
     const int THREADS_USED_DNS = THREADS_USED_DNS_TH < 32 ? THREADS_USED_DNS_TH : 32;
-    printf("ThreadsUsed: Tiny: %d, Sml: %d, Lrg: %d, Dns: %d\n", THREADS_USED_TNY, THREADS_USED_SML, THREADS_USED_LRG, THREADS_USED_DNS);
+    
+    printf("\n  Output Tile Classification:\n");
+    printf("  %-10s  %10s  %12s  %10s\n",
+           "Type", "Count", "Threshold", "Threads");
+    printf("  %-10s  %10s  %12s  %10s\n",
+           "----------", "----------", "------------", "----------");
+    printf("  %-10s  %10d  %12d  %10d\n",
+           "Tiny",  blksmem_tny_cnt, SMEM_TNY_TH, THREADS_USED_TNY);
+    printf("  %-10s  %10d  %12d  %10d\n",
+           "Small", blksmem_sml_cnt, SMEM_SML_TH, THREADS_USED_SML);
+    printf("  %-10s  %10d  %12d  %10d\n",
+           "Large", blksmem_lrg_cnt, SMEM_LRG_TH, THREADS_USED_LRG);
+    printf("  %-10s  %10d  %12d  %10d\n",
+           "Dense", blksmem_dns_cnt, SMEM_DNS_TH, THREADS_USED_DNS);
+    printf("  %-10s  %10d  %12d  %10d\n",
+           "Full",  blksmem_ful_cnt, TILE_SIZE_M * TILE_SIZE_M, 32);
+    printf("\n");
+    printf("--------------------------------------------------------------------------------\n");
 
 #if TIMING
         gettimeofday(&t1, NULL);
@@ -3935,12 +3910,17 @@ void tilespgemm(SMatrixA *matrixA,
 #if TIMING
         cudaDeviceSynchronize();
         gettimeofday(&t2, NULL);
-        *time_step3 = (t2.tv_sec - t1.tv_sec) * 1000.0 + (t2.tv_usec - t1.tv_usec) / 1000.0;
+        *time_numeric = (t2.tv_sec - t1.tv_sec) * 1000.0 + (t2.tv_usec - t1.tv_usec) / 1000.0;
         if (ri == 0)
         {
-            printf("\nstep3 ---------Calculate the val&col of nonzeros of matrixC-------------\n");
-            printf("step3 ---------------------- Runtime is  %.2f ms------------------------\n", *time_step3);
-            printf("\n-----------------------Malloc uses %.2f ms-------------------------------\n", *time_malloc);
+            printf("\n[Numeric Stage]\n");
+            printf("  Runtime                  : %.2f ms\n", *time_numeric);
+            printf("\n");
+            printf("--------------------------------------------------------------------------------\n");
+            printf("\n[Malloc]\n");
+            printf("  Memory Allocation        : %.2f ms\n", *time_malloc);
+            printf("\n");
+            printf("--------------------------------------------------------------------------------\n");
         }
 
 #endif
@@ -4012,9 +3992,13 @@ void tilespgemm(SMatrixA *matrixA,
     *time_tile = tile_spgemm_time;
     *gflops_tile = 2.0 * (double)nnzCub / (tile_spgemm_time * 1e6);
 
-    printf("Non-empty tiles of C = %i\n", numblkC);
-    printf("nnzC = %i\n", nnzC);
-    printf("CUDA  TileSpGEMM runtime is %4.2f ms, gflops = %4.2f\n", tile_spgemm_time, *gflops_tile);
+    printf("\n[FlexSpGEMM Summary]\n");
+    printf("  Non-empty Output Tiles   : %d\n",   numblkC);
+    printf("  NNZ (C)                  : %d\n",   nnzC);
+    printf("  Total Runtime            : %.2f ms\n", tile_spgemm_time);
+    printf("  Throughput               : %.2f GFlops\n", *gflops_tile);
+    printf("\n");
+    printf("--------------------------------------------------------------------------------\n");
 
     cudaFree(d_blksmem_tny_cnt);
     cudaFree(d_blksmem_sml_cnt);

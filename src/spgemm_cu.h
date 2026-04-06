@@ -28,16 +28,12 @@ int spgemm_cu (         const int             mA,
                         double        *gflops_segmerge )
 {
     // run cuda SpGEMM (using cuSPARSE)
-    printf("\n--------------- SpGEMM (using cuSPARSE) ---------------\n");
-    double compression_rate1 = 0;
-    double time_cusparse = 0;
-    double gflops_cusparse = 0;
-    spgemm_cusparse(mA, nA, nnzA, csrRowPtrA, csrColIdxA, csrValA,
+    printf("\n[Baseline: cuSPARSE SpGEMM]\n");
+    int ret = spgemm_cusparse(mA, nA, nnzA, csrRowPtrA, csrColIdxA, csrValA,
                  mB, nB, nnzB, csrRowPtrB, csrColIdxB, csrValB,
                  mC, nC, nnzC_golden, csrRowPtrC_golden, csrColIdxC_golden, csrValC_golden,
-                 check_result, nnzCub, nnzC, &compression_rate1, &time_cusparse, &gflops_cusparse);
-    printf("---------------------------------------------------------------\n");
-    return 0;
+                 check_result, nnzCub, nnzC, compression_rate, time_segmerge, gflops_segmerge);
+    return ret;
 }
 
 

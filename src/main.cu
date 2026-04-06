@@ -15,17 +15,15 @@ int main(int argc, char ** argv)
 
 	if (argc < 5)
     {
-        printf("Run the code by './test -d 0 -aat 0 matrix.mtx'.\n");
+        printf("Usage: ./test -d <device_id> -aat <0|1> <matrix.mtx>\n");
+        printf("  -aat 0 : compute C = A * A\n");
+        printf("  -aat 1 : compute C = A * A^T\n");
         return 0;
     }
-	
-    printf("--------------------------------!!!!!!!!------------------------------------\n");
     
     int device_id = 0;
     int aat = 0;
 
-    // "Usage: ``./test -d 0 -aat 0 A.mtx'' for C=AA  on device 0", or
-    // "Usage: ``./test -d 0 -aat 1 A.mtx'' for C=AAT on device 0"
     int argi = 1;
 
     // load device id
@@ -43,7 +41,6 @@ int main(int argc, char ** argv)
         device_id = atoi(argv[argi]);
         argi++;
     }
-    printf("device_id = %i\n", device_id);
     
     // set device
     cudaSetDevice(device_id);
@@ -54,9 +51,17 @@ int main(int argc, char ** argv)
     size_t size = min( int(deviceProp.l2CacheSize * 0.80) , deviceProp.persistingL2CacheMaxSize );
     cudaDeviceSetLimit( cudaLimitPersistingL2CacheSize, size); 
 
-    printf("---------------------------------------------------------------\n");
-    printf("Device [ %i ] %s @ %4.2f MHz\n",
-           device_id, deviceProp.name, deviceProp.clockRate * 1e-3f);
+    printf("\n");
+    printf("================================================================================\n");
+    printf("  FlexSpGEMM Performance Evaluation\n");
+    printf("================================================================================\n");
+    printf("\n");
+    printf("[Device]\n");
+    printf("  Device ID   : %d\n", device_id);
+    printf("  Device Name : %s\n", deviceProp.name);
+    printf("  Clock Rate  : %.2f MHz\n", deviceProp.clockRate * 1e-3f);
+    printf("\n");
+    printf("--------------------------------------------------------------------------------\n");
            
     // load AAT flag
     char *aatstr;
@@ -83,23 +88,33 @@ int main(int argc, char ** argv)
     argi++;
 
     // The tile of A is m×n, and the tile of B is n×m
-    printf("MAT: -------------- %s --------------\n", filename);
-
     // load mtx A data to the csr format
     gettimeofday(&t1, NULL);
     mmio_allinone(&matrixA->m, &matrixA->n, &matrixA->nnz, &matrixA->isSymmetric, &matrixA->rowpointer, &matrixA->columnindex, &matrixA->value, filename);
     gettimeofday(&t2, NULL);
     double time_loadmat  = (t2.tv_sec - t1.tv_sec) * 1000.0 + (t2.tv_usec - t1.tv_usec) / 1000.0;
-    printf("input matrix A: ( %i, %i ) nnz = %i\n loadfile time    = %4.5f sec\n", matrixA->m, matrixA->n, matrixA->nnz, time_loadmat/1000.0);
+    
+    printf("\n[Input Matrix]\n");
+    char *base = strrchr(filename, '/');
+    char *fname = base ? base + 1 : filename;
+    printf("  File        : %s\n", fname);
+    printf("  Path        : %s\n", filename);
+    printf("  Dimension   : %d x %d\n", matrixA->m, matrixA->n);
+    printf("  NNZ (A)     : %d\n", matrixA->nnz);
+    printf("  Load Time   : %.5f sec\n", time_loadmat / 1000.0);
+    printf("\n");
+    printf("--------------------------------------------------------------------------------\n");
+
+    printf("\n[Tiling Configuration]\n");
+    printf("  Tile Size   : %d x %d  (TILE_SIZE_M x TILE_SIZE_N)\n", TILE_SIZE_M, TILE_SIZE_N);
+    printf("\n");
+    printf("--------------------------------------------------------------------------------\n");
 
     if (!aat &&  matrixA->m != matrixA->n)
     {
-        printf("matrix squaring must have rowA == colA. Exit.\n");
+        printf("[ERROR] Matrix squaring requires rowA == colA. Exiting.\n");
         return 0;
     }
-
-    printf("the TILE_SIZE_M = %d\n", TILE_SIZE_M);
-    printf("the TILE_SIZE_N = %d\n", TILE_SIZE_N);
 
 	for (int i = 0; i < matrixA->nnz; i++)
 	    matrixA->value[i] = i % 10;
@@ -112,7 +127,7 @@ int main(int argc, char ** argv)
     
         if (matrixA->m == matrixA->n && matrixA->isSymmetric)
         {
-           printf("matrix AAT does not do symmetric matrix. Exit.\n");
+           printf("Matrix AAT does not do symmetric matrix. Exit.\n");
            return 0;
         }
 
@@ -152,7 +167,8 @@ int main(int argc, char ** argv)
             nnzCub += matrixB->rowpointer[rowidx + 1] - matrixB->rowpointer[rowidx];
         }
     
-        printf("SpGEMM nnzCub = %lld\n", nnzCub);
+        printf("\n[Preprocessing]\n");
+        printf("  NNZ Upper Bound (nnzCub) : %lld\n", nnzCub);
 
 #if TIMING
         gettimeofday(&t1, NULL);
@@ -163,7 +179,7 @@ int main(int argc, char ** argv)
 #if TIMING
         gettimeofday(&t2, NULL);
         double time_conversion = (t2.tv_sec - t1.tv_sec) * 1000.0 + (t2.tv_usec - t1.tv_usec) / 1000.0;
-        printf("CSR to Tile conversion uses %.2f ms\n", time_conversion);
+        printf("  Format Conversion        : %.2f ms\n", time_conversion);
 #endif
 
 #if SPACE
@@ -175,16 +191,22 @@ double tile_bytes = (matrixA->tilem + 1) * sizeof(int) + matrixA->numtile * size
 double mem = tile_bytes/1024/1024;
 
 double CSR_bytes = (matrixA->m +1) * sizeof(int) + (matrixA->nnz) * sizeof(int) + matrixA->nnz * sizeof(MAT_VAL_TYPE);
-double csr_mem = CSR_bytes /1024/1024;
-
-printf("tile space overhead = %.2f MB\n", mem);
+double csr_mem = CSR_bytes/1024/1024;
 
 double dense_bytes = (long long int)matrixA->dense_tile_count * TILE_SIZE_M * TILE_SIZE_N * sizeof(MAT_VAL_TYPE) + 
                      (long long int)matrixA->dense_tile_count * sizeof(int);
-double dense_mem = dense_bytes /1024/1024;
+double dense_mem = dense_bytes/1024/1024;
 
-printf("CSR space overhead = %.2f MB\n", csr_mem);
-printf("Dense space overhead = %.2f MB, DNS_THRESHOLD = %.2f\n", dense_mem, float(TILE_DENSE_THRESHOLD)/10);
+double all_dense_bytes = matrixA->numtile * TILE_SIZE_M * TILE_SIZE_N * sizeof(MAT_VAL_TYPE);
+double all_dense_mem = all_dense_bytes/1024/1024;
+
+printf("\n  Memory Overhead:\n");
+printf("    CSR Memory Cost        : %.2f MB\n", csr_mem);
+printf("    Dense Memory Cost      : %.2f MB\n", all_dense_mem);
+printf("    TileSpGEMM Memory Cost : %.2f MB\n", mem);
+printf("    FlexSpGEMM Memory Cost : %.2f MB  (DNS_THRESHOLD = %.2f)\n", dense_mem + mem, float(TILE_DENSE_THRESHOLD) / 10);
+printf("\n");
+printf("--------------------------------------------------------------------------------\n");
 
 #endif
 
@@ -253,10 +275,9 @@ printf("Dense space overhead = %.2f MB, DNS_THRESHOLD = %.2f\n", dense_mem, floa
     double compression_rate = 0;
     double time_tile = 0;
     double gflops_tile = 0;
-    double time_step1 =0,time_step2 =0,time_step3 =0,time_malloc=0; 
-
-
-    
+    double time_symbolic = 0;
+    double time_numeric = 0;
+    double time_malloc = 0; 
 
     tilespgemm(matrixA,
                matrixB,
@@ -272,14 +293,14 @@ printf("Dense space overhead = %.2f MB, DNS_THRESHOLD = %.2f\n", dense_mem, floa
                &time_tile,
                &gflops_tile,
                filename,
-               &time_step1,&time_step2,&time_step3,&time_malloc);
+               &time_symbolic,&time_numeric,&time_malloc);
 
     // for (int i = 0; i < 10; i++){
     //     printf("[DEBUG] tile_ptr[%d]: %d\n", i, matrixC->tile_ptr[i]);
     // }
     
     // write results to text (csv) file
-    FILE *fout = fopen("../data/results_tile.csv", "a");
+    FILE *fout = fopen("../result/results_tile.csv", "a");
     if (fout == NULL)
         printf("Writing results fails.\n");
     fprintf(fout, "%s,%i,%i,%i,%lld,%lld,%f,%f,%f\n",
@@ -287,17 +308,17 @@ printf("Dense space overhead = %.2f MB, DNS_THRESHOLD = %.2f\n", dense_mem, floa
     fclose(fout);
 
     // write runtime of each step to text (csv) file
-    FILE *fout_time = fopen("../data/step_runtime.csv", "a");
+    FILE *fout_time = fopen("../result/step_runtime.csv", "a");
     if (fout_time == NULL)
         printf("Writing results fails.\n");
     fprintf(fout_time, "%s,%i,%i,%i,%lld,%lld,%f,%f,%f,%f,%f\n",
-                filename, matrixA->m, matrixA->n, matrixA->nnz, nnzCub, nnzC_computed, compression_rate, time_step1, time_step2,time_step3,time_malloc);
+                filename, matrixA->m, matrixA->n, matrixA->nnz, nnzCub, nnzC_computed, compression_rate, time_symbolic, time_numeric, time_malloc);
     fclose(fout_time);
     
 
 #if SPACE
     // write memory space of CSR and tile format to text (csv) file
-    FILE *fout_mem = fopen("../data/mem-cost.csv", "a");
+    FILE *fout_mem = fopen("../result/mem-cost.csv", "a");
     if (fout_mem == NULL)
         printf("Writing results fails.\n");
     fprintf(fout_mem, "%s,%i,%i,%i,%lld,%lld,%f,%f,%f\n",
@@ -309,7 +330,7 @@ printf("Dense space overhead = %.2f MB, DNS_THRESHOLD = %.2f\n", dense_mem, floa
 #if TIMING
 
     // write preprocessing overhead of CSR and tile format to text (scv) file
-    FILE *fout_pre = fopen("../data/preprocessing.csv", "a");
+    FILE *fout_pre = fopen("../result/preprocessing.csv", "a");
     if (fout_pre == NULL)
         printf("Writing results fails.\n");
     fprintf(fout_pre, "%s,%i,%i,%i,%lld,%lld,%f,%f,%f\n",
@@ -322,9 +343,7 @@ printf("Dense space overhead = %.2f MB, DNS_THRESHOLD = %.2f\n", dense_mem, floa
 #endif
 
 #if CHECK_RESULT
-printf("-------------------------------check----------------------------------------\n");
 tile2csr(matrixC, TILE_SIZE_M, TILE_SIZE_M);
-        printf("tile to CSR conversion complete!\n");
 
     unsigned long long int nnzC = 0;
     double compression_rate1 = 0;
@@ -340,11 +359,23 @@ tile2csr(matrixC, TILE_SIZE_M, TILE_SIZE_M);
     int *csrColIdxC_golden = matrixC->columnindex;
     MAT_VAL_TYPE *csrValC_golden = matrixC->value;
 
-    spgemm_cu(matrixA->m, matrixA->n, matrixA->nnz, matrixA->rowpointer, matrixA->columnindex, matrixA->value,
+    int cusparse_ret = spgemm_cu(matrixA->m, matrixA->n, matrixA->nnz, matrixA->rowpointer, matrixA->columnindex, matrixA->value,
               matrixB->m, matrixB->n, matrixB->nnz, matrixB->rowpointer, matrixB->columnindex, matrixB->value,
               mC, nC, nnzC_golden, csrRowPtrC_golden, csrColIdxC_golden, csrValC_golden,
               check_result, nnzCub, &nnzC, &compression_rate1, &time_cusparse, &gflops_cusparse);
-    printf("---------------------------------------------------------------\n");
+
+    printf("[Speedup]\n");
+    if (cusparse_ret != 0 || time_cusparse <= 0.0)
+        {
+            printf("  FlexSpGEMM vs. cuSPARSE  : Comparison failed "
+                "(cuSPARSE did not produce valid results)\n");
+        }
+        else
+        {
+            printf("  FlexSpGEMM vs. cuSPARSE  : %.2fx\n",
+                time_cusparse / time_tile);
+        }
+    printf("--------------------------------------------------------------------------------\n");
 
 #endif
     matrix_destroy(matrixA);
