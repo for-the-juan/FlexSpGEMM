@@ -4,19 +4,6 @@
 **FlexSpGEMM** is an open-source project that optimizes general sparse matrix-matrix multiplication (SpGEMM) on GPUs. It leverages machine learning methods to predict and adaptively select flexible tile sizes, enabling efficient computation across diverse sparse matrix workloads.
 
 
--------------------
-## Paper information
-
-Ruiyang Chen, Hangcheng Dong, Zhuoran Song, Rui Ma, Yuliang Chen, Shuyun Gui, Bangqi Fu, Xiaoyao Liang and Haibing Guan. 2026. FlexSpGEMM: Adaptive Tiling and Hybrid Execution for SpGEMM on Modern GPUs. In The International Conference for High Performance Computing, Networking, Storage, and Analysis (SC ’26), 13 pages. 
-<!--TODO-->
-<!--DOI:  N/A-->
-
-## Contact us
-
-If you have any questions about running the code, please contact Ruiyang Chen and Hangcheng Dong. 
-
-E-mail: chenruiyang@sjtu.edu.cn, donghangcheng@sjtu.edu.cn
-
 ## Introduction
 
 General sparse matrix-matrix multiplication(SpGEMM) executes C=AB, where A, B and C are all sparse matrices. FlexSpGEMM is a Flexible machine learning (ML) guided SpGEMM framework for modern GPUs. In the offline phase, we propose a ML-based predictor to identify both the tiling parameter and the associated hardware path based on the input matrices. In the online phase, a hybrid execution mechanism coordinates the cooperative use of CUDA cores and Tensor cores at tile granularity. To further reduce the format translation overhead on the Tensor core path, FlexSpGEMM introduces a speculative dense tile format that pre-constructs dense replicas only for a subset of input tiles with high potential benefit, and combines this design with lightweight runtime densification to enable efficient access. 
