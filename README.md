@@ -8,11 +8,24 @@
 
 General sparse matrix-matrix multiplication(SpGEMM) executes C=AB, where A, B and C are all sparse matrices. FlexSpGEMM is a Flexible machine learning (ML) guided SpGEMM framework for modern GPUs. In the offline phase, we propose a ML-based predictor to identify both the tiling parameter and the associated hardware path based on the input matrices. In the online phase, a hybrid execution mechanism coordinates the cooperative use of CUDA cores and Tensor cores at tile granularity. To further reduce the format translation overhead on the Tensor core path, FlexSpGEMM introduces a speculative dense tile format that pre-constructs dense replicas only for a subset of input tiles with high potential benefit, and combines this design with lightweight runtime densification to enable efficient access. 
 
-## Preparation Dataset and Installation
+## Installation
 
 <!-- To use this code, you need to modify the Makefile with correct g++ installation path and use make for automatic installation. -->
 To better reproduce experiment results, we suggest an NVIDIA GPU with compute capability 8.6.
 FlexSpGEMM evaluation requires the CUDA GPU driver, the nvcc CUDA compiler, and the cuSPARSE library, all of them are included with the CUDA Toolkit. The artifacts have been tested on Ubuntu 18.04/22.04, and are expected to run correctly under other Linux distributions.
+
+## Quick Start
+
+### Predict tile shape and tau with LightGBM
+
+### Run SpGEMM by prediction
+
+### Result log save and summarize
+
+## Full Evaluation from Scratch
+Data Download (3h, 19GB)
+If you prefer to reproduce the complete evaluation pipeline from scratch, we have prepared the LightGBM dataset split in advance. The split configuration is located at: 
+
 
 ## Execution of TileSpGEMM
 Our test programs currently support input files encoded using the matrix market format. All matrix market datasets used in this evaluation are publicly available from the SuiteSparse Matrix Collection. 

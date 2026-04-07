@@ -12,10 +12,9 @@
 
 int main(int argc, char ** argv)
 {
-
-	if (argc < 5)
+	if (argc < 6)
     {
-        printf("Usage: ./test -d <device_id> -aat <0|1> <matrix.mtx>\n");
+        printf("Usage: ./test -d <device_id> -aat <0|1> -tau x <matrix.mtx>\n");
         printf("  -aat 0 : compute C = A * A\n");
         printf("  -aat 1 : compute C = A * A^T\n");
         return 0;

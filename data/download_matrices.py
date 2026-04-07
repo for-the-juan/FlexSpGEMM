@@ -5,6 +5,7 @@ Saves train, val, test matrices to separate folders
 
 Supports fuzzy matching for variant names (e.g., case9_A_12 -> case9)
 Uses wget with resume capability (-c flag) for robust downloads
+Records download time for each matrix and calculates total time statistics
 """
 
 import json
@@ -12,6 +13,8 @@ import os
 import re
 import glob
 import shutil
+import time
+from datetime import timedelta
 from ssgetpy import search
 
 def load_matrix_names(json_file):
@@ -79,7 +82,7 @@ def search_matrix_by_name(matrix_name):
 def download_matrix(mat, output_dir, original_name):
     """
     Download and extract matrix to specified directory using wget
-    Returns: True/False for success
+    Returns: (success: True/False, download_time: float in seconds)
     """
     matrix_name = mat.name
     matrix_group = mat.group
@@ -88,7 +91,7 @@ def download_matrix(mat, output_dir, original_name):
     target_file = os.path.join(output_dir, f"{original_name}.mtx")
     if os.path.exists(target_file):
         print(f"    Already exists: {original_name}.mtx")
-        return True
+        return True, 0.0
     
     # Create temp directory
     temp_dir = os.path.join(output_dir, f"_temp_{matrix_name}")
@@ -99,6 +102,9 @@ def download_matrix(mat, output_dir, original_name):
     # Build download URL
     matrix_url = f"https://suitesparse-collection-website.herokuapp.com/MM/{matrix_group}/{matrix_name}.tar.gz"
     temp_tar = os.path.join(temp_dir, f"{matrix_name}.tar.gz")
+    
+    # Start timing
+    start_time = time.time()
     
     # Download with wget -c for resume capability
     max_retries = 3
@@ -112,18 +118,20 @@ def download_matrix(mat, output_dir, original_name):
         print(f"    Download failed (attempt {retry + 1}/{max_retries}), retrying...")
     
     if not success:
+        download_time = time.time() - start_time
         print(f"    Download failed: {matrix_name}")
         if os.path.exists(temp_dir):
             shutil.rmtree(temp_dir)
-        return False
+        return False, download_time
     
     # Extract tar.gz
     ret = os.system(f"tar -zxf {temp_tar} -C {temp_dir}")
     if ret != 0:
+        download_time = time.time() - start_time
         print(f"    Extract failed: {matrix_name}")
         if os.path.exists(temp_dir):
             shutil.rmtree(temp_dir)
-        return False
+        return False, download_time
     
     # Remove tar.gz file
     os.remove(temp_tar)
@@ -132,17 +140,19 @@ def download_matrix(mat, output_dir, original_name):
     mtx_files = glob.glob(os.path.join(temp_dir, "**/*.mtx"), recursive=True)
     
     if not mtx_files:
+        download_time = time.time() - start_time
         print(f"    No .mtx file found")
         shutil.rmtree(temp_dir)
-        return False
+        return False, download_time
     
     # If only one file, move it directly
     if len(mtx_files) == 1:
         src_file = mtx_files[0]
         shutil.move(src_file, target_file)
         shutil.rmtree(temp_dir)
-        print(f"    Done: {original_name}.mtx")
-        return True
+        download_time = time.time() - start_time
+        print(f"    Done: {original_name}.mtx ({download_time:.2f}s)")
+        return True, download_time
     
     # If multiple files, find the one matching original name
     found = False
@@ -155,15 +165,31 @@ def download_matrix(mat, output_dir, original_name):
     
     if found:
         shutil.rmtree(temp_dir)
-        print(f"    Done: {original_name}.mtx (selected from multiple files)")
-        return True
+        download_time = time.time() - start_time
+        print(f"    Done: {original_name}.mtx (selected from multiple files, {download_time:.2f}s)")
+        return True, download_time
     
     # If no match found, use first file and rename
     src_file = mtx_files[0]
     shutil.move(src_file, target_file)
     shutil.rmtree(temp_dir)
-    print(f"    Done: {original_name}.mtx (renamed from {os.path.basename(src_file)})")
-    return True
+    download_time = time.time() - start_time
+    print(f"    Done: {original_name}.mtx (renamed from {os.path.basename(src_file)}, {download_time:.2f}s)")
+    return True, download_time
+
+def format_time(seconds):
+    """Format seconds into human readable string"""
+    if seconds < 60:
+        return f"{seconds:.2f}s"
+    elif seconds < 3600:
+        mins = int(seconds // 60)
+        secs = seconds % 60
+        return f"{mins}m {secs:.2f}s"
+    else:
+        hours = int(seconds // 3600)
+        mins = int((seconds % 3600) // 60)
+        secs = seconds % 60
+        return f"{hours}h {mins}m {secs:.2f}s"
 
 def process_split(matrix_names, split_name, output_base_dir):
     """Process one dataset split (train/val/test)"""
@@ -178,6 +204,10 @@ def process_split(matrix_names, split_name, output_base_dir):
     skip_count = 0
     fail_count = 0
     failed_matrices = []
+    total_download_time = 0.0
+    download_times = []  # List of (matrix_name, time) for successful downloads
+    
+    split_start_time = time.time()
     
     for i, name in enumerate(matrix_names):
         print(f"  [{i+1}/{len(matrix_names)}] {name}", end="")
@@ -204,20 +234,35 @@ def process_split(matrix_names, split_name, output_base_dir):
             print(f" -> Partial match: {name} -> {mat.name}", end="")
         
         # Download matrix
-        if download_matrix(mat, output_dir, name):
+        success, download_time = download_matrix(mat, output_dir, name)
+        if success:
             success_count += 1
+            total_download_time += download_time
+            download_times.append((name, download_time))
         else:
             fail_count += 1
             failed_matrices.append(name)
+    
+    split_elapsed_time = time.time() - split_start_time
     
     print(f"\n{split_name} processing complete:")
     print(f"  Success: {success_count}")
     print(f"  Skipped: {skip_count}")
     print(f"  Failed: {fail_count}")
+    print(f"  Total download time: {format_time(total_download_time)}")
+    print(f"  Total elapsed time: {format_time(split_elapsed_time)}")
     if failed_matrices:
         print(f"  Failed list: {failed_matrices}")
     
-    return success_count, skip_count, fail_count, failed_matrices
+    return {
+        'success': success_count,
+        'skip': skip_count,
+        'fail': fail_count,
+        'failed_matrices': failed_matrices,
+        'total_download_time': total_download_time,
+        'elapsed_time': split_elapsed_time,
+        'download_times': download_times
+    }
 
 def main():
     # Path configuration
@@ -225,40 +270,55 @@ def main():
     json_file = os.path.join(script_dir, 'matrix_split_new.json')
     output_base_dir = script_dir  # Output to subdirectories under data/
     
+    # Overall timing
+    overall_start_time = time.time()
+    
     # Load matrix names
     print(f"Loading matrix names from {json_file}...")
     train_names, val_names, test_names = load_matrix_names(json_file)
     print(f"Loaded: train={len(train_names)}, val={len(val_names)}, test={len(test_names)}")
     
     # Process each dataset
-    total_success = 0
-    total_skip = 0
-    total_fail = 0
+    results = {}
+    
+    results['train'] = process_split(train_names, 'train', output_base_dir)
+    results['val'] = process_split(val_names, 'val', output_base_dir)
+    results['test'] = process_split(test_names, 'test', output_base_dir)
+    
+    overall_elapsed_time = time.time() - overall_start_time
+    
+    # Calculate totals
+    total_success = sum(r['success'] for r in results.values())
+    total_skip = sum(r['skip'] for r in results.values())
+    total_fail = sum(r['fail'] for r in results.values())
+    total_download_time = sum(r['total_download_time'] for r in results.values())
     all_failed = []
+    for r in results.values():
+        all_failed.extend(r['failed_matrices'])
     
-    success, skip, fail, failed = process_split(train_names, 'train', output_base_dir)
-    total_success += success
-    total_skip += skip
-    total_fail += fail
-    all_failed.extend(failed)
+    print("\n" + "="*60)
+    print("DOWNLOAD SUMMARY")
+    print("="*60)
+    print(f"\nDataset Statistics:")
+    print(f"  Train: {results['train']['success']} success, {results['train']['skip']} skipped, {results['train']['fail']} failed")
+    print(f"  Val:   {results['val']['success']} success, {results['val']['skip']} skipped, {results['val']['fail']} failed")
+    print(f"  Test:  {results['test']['success']} success, {results['test']['skip']} skipped, {results['test']['fail']} failed")
     
-    success, skip, fail, failed = process_split(val_names, 'val', output_base_dir)
-    total_success += success
-    total_skip += skip
-    total_fail += fail
-    all_failed.extend(failed)
+    print(f"\nTime Statistics:")
+    print(f"  Train download time: {format_time(results['train']['total_download_time'])}")
+    print(f"  Val download time:   {format_time(results['val']['total_download_time'])}")
+    print(f"  Test download time:  {format_time(results['test']['total_download_time'])}")
+    print(f"  Total download time:  {format_time(total_download_time)}")
+    print(f"  Total elapsed time:   {format_time(overall_elapsed_time)}")
     
-    success, skip, fail, failed = process_split(test_names, 'test', output_base_dir)
-    total_success += success
-    total_skip += skip
-    total_fail += fail
-    all_failed.extend(failed)
+    print(f"\nOverall Results:")
+    print(f"  Total matrices: {len(train_names) + len(val_names) + len(test_names)}")
+    print(f"  Success: {total_success}")
+    print(f"  Skipped: {total_skip}")
+    print(f"  Failed: {total_fail}")
     
-    print("\n" + "="*50)
-    print("All processing complete!")
-    print(f"Total: Success={total_success}, Skipped={total_skip}, Failed={total_fail}")
     if all_failed:
-        print(f"Failed matrices ({len(all_failed)}):")
+        print(f"\nFailed matrices ({len(all_failed)}):")
         for name in all_failed:
             print(f"  - {name}")
 
