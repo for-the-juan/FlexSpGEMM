@@ -110,8 +110,8 @@ def download_matrix(mat, output_dir, original_name):
     max_retries = 3
     success = False
     for retry in range(max_retries):
-        # Use wget -c for resume, -q for quiet
-        ret = os.system(f"wget -c -q -O {temp_tar} {matrix_url}")
+        # Use wget -c for resume
+        ret = os.system(f"wget -c -O {temp_tar} {matrix_url}")
         if ret == 0 and os.path.exists(temp_tar) and os.path.getsize(temp_tar) > 0:
             success = True
             break

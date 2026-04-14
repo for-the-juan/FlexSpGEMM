@@ -1,6 +1,6 @@
 CXX := nvcc
 #Replace cuda path with actual cuda path
-CXXFLAGS := -arch=compute_86 -code=sm_86 -O3 -Xcompiler -lrt -lrt -lcudart -lcusparse -I/usr/local/cuda-11.4/include/cub
+CXXFLAGS := -arch=compute_80 -code=sm_80 -O3 -Xcompiler -lrt -lrt -lcudart -lcusparse -I/usr/local/cuda-11.4/include/cub
 
 #Replace with the actual file path
 SRC := ../../src/test.cu

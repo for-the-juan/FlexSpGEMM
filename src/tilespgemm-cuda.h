@@ -9,6 +9,8 @@
 using namespace nvcuda;
 namespace cg = cooperative_groups;
 
+__constant__ int d_SMEM_LRG_TH;
+
 __device__ __forceinline__
 size_t align_up(size_t x, size_t a) {
     return (x + a - 1) & ~(a - 1);
@@ -743,12 +745,12 @@ __global__ void tile_spgemm_step3_cuda_kernel_2level_quadwarp(const int *d_blkro
                     int pos = atomicAdd(s_blksmem_sml_cnt_local, 1);
                     s_blkid_smem_sml_local[pos] = tilei;
                 }
-                else if (SMEM_SML_TH < nnzcnt_sum && nnzcnt_sum <= SMEM_LRG_TH)
+                else if (SMEM_SML_TH < nnzcnt_sum && nnzcnt_sum <= d_SMEM_LRG_TH)
                 {
                     int pos = atomicAdd(s_blksmem_lrg_cnt_local, 1);
                     s_blkid_smem_lrg_local[pos] = tilei;
                 }
-                else if (SMEM_LRG_TH < nnzcnt_sum && nnzcnt_sum < SMEM_DNS_TH)
+                else if (d_SMEM_LRG_TH < nnzcnt_sum && nnzcnt_sum < SMEM_DNS_TH)
                 {
                     int pos = atomicAdd(s_blksmem_dns_cnt_local, 1);
                     s_blkid_smem_dns_local[pos] = tilei;
@@ -1109,12 +1111,12 @@ __global__ void tile_spgemm_step3_cuda_kernel_2level_halfwarp(const int *d_blkro
                     int pos = atomicAdd(s_blksmem_sml_cnt_local, 1);
                     s_blkid_smem_sml_local[pos] = tilei;
                 }
-                else if (SMEM_SML_TH < nnzcnt_sum && nnzcnt_sum <= SMEM_LRG_TH)
+                else if (SMEM_SML_TH < nnzcnt_sum && nnzcnt_sum <= d_SMEM_LRG_TH)
                 {
                     int pos = atomicAdd(s_blksmem_lrg_cnt_local, 1);
                     s_blkid_smem_lrg_local[pos] = tilei;
                 }
-                else if (SMEM_LRG_TH < nnzcnt_sum && nnzcnt_sum < SMEM_DNS_TH)
+                else if (d_SMEM_LRG_TH < nnzcnt_sum && nnzcnt_sum < SMEM_DNS_TH)
                 {
                     int pos = atomicAdd(s_blksmem_dns_cnt_local, 1);
                     s_blkid_smem_dns_local[pos] = tilei;
@@ -1497,12 +1499,12 @@ __global__ void tile_spgemm_step3_cuda_kernel_2level_warp(const int *d_blkrowptr
                         int pos = atomicAdd(s_blksmem_sml_cnt_local, 1);
                         s_blkid_smem_sml_local[pos] = tilei;
                     }
-                    else if (SMEM_SML_TH < nnzcnt_sum && nnzcnt_sum <= SMEM_LRG_TH)
+                    else if (SMEM_SML_TH < nnzcnt_sum && nnzcnt_sum <= d_SMEM_LRG_TH)
                     {
                         int pos = atomicAdd(s_blksmem_lrg_cnt_local, 1);
                         s_blkid_smem_lrg_local[pos] = tilei;
                     }
-                    else if (SMEM_LRG_TH < nnzcnt_sum && nnzcnt_sum < SMEM_DNS_TH)
+                    else if (d_SMEM_LRG_TH < nnzcnt_sum && nnzcnt_sum < SMEM_DNS_TH)
                     {
                         int pos = atomicAdd(s_blksmem_dns_cnt_local, 1);
                         s_blkid_smem_dns_local[pos] = tilei;
@@ -1821,12 +1823,12 @@ __global__ void tile_spgemm_step3_cuda_kernel_dns_halfwarp(const int *d_blkrowpt
                         int pos = atomicAdd(s_blksmem_sml_cnt_local, 1);
                         s_blkid_smem_sml_local[pos] = tilei;
                     }
-                    else if (SMEM_SML_TH < nnzcnt_sum && nnzcnt_sum <= SMEM_LRG_TH)
+                    else if (SMEM_SML_TH < nnzcnt_sum && nnzcnt_sum <= d_SMEM_LRG_TH)
                     {
                         int pos = atomicAdd(s_blksmem_lrg_cnt_local, 1);
                         s_blkid_smem_lrg_local[pos] = tilei;
                     }
-                    else if (SMEM_LRG_TH < nnzcnt_sum && nnzcnt_sum < SMEM_DNS_TH)
+                    else if (d_SMEM_LRG_TH < nnzcnt_sum && nnzcnt_sum < SMEM_DNS_TH)
                     {
                         int pos = atomicAdd(s_blksmem_dns_cnt_local, 1);
                         s_blkid_smem_dns_local[pos] = tilei;
@@ -3300,7 +3302,8 @@ void tilespgemm(SMatrixA *matrixA,
                 double *time_tile,
                 double *gflops_tile,
                 char *filename,
-                double *time_symbolic, double *time_numeric, double *time_malloc)
+                double *time_symbolic, double *time_numeric, double *time_malloc,
+                int tc_threshold)
 {
     int *d_blkrowptrA;
     int *d_blkcolidxA;
@@ -3412,6 +3415,9 @@ void tilespgemm(SMatrixA *matrixA,
     int numblkC = 0;
     int nnzC = 0;
     double tile_spgemm_time = 0;
+
+    tc_threshold = (tc_threshold == 0) ? 1 : tc_threshold;
+    cudaMemcpyToSymbol(d_SMEM_LRG_TH, &tc_threshold, sizeof(int));
 
     int nstreams = 5;
 
@@ -3728,7 +3734,7 @@ void tilespgemm(SMatrixA *matrixA,
     printf("  %-10s  %10d  %12d  %10d\n",
            "Small", blksmem_sml_cnt, SMEM_SML_TH, THREADS_USED_SML);
     printf("  %-10s  %10d  %12d  %10d\n",
-           "Large", blksmem_lrg_cnt, SMEM_LRG_TH, THREADS_USED_LRG);
+           "Large", blksmem_lrg_cnt, tc_threshold, THREADS_USED_LRG);
     printf("  %-10s  %10d  %12d  %10d\n",
            "Dense", blksmem_dns_cnt, SMEM_DNS_TH, THREADS_USED_DNS);
     printf("  %-10s  %10d  %12d  %10d\n",
@@ -3801,7 +3807,7 @@ void tilespgemm(SMatrixA *matrixA,
     {
         num_threads = STEP4_THREADS;
         num_blocks = ceil((double)blksmem_lrg_cnt / (double)(num_threads / 32));
-        tile_spgemm_step4_cuda_sparse_kernel_adaptive_warp<SMEM_LRG_TH, THREADS_USED_LRG><<<num_blocks, num_threads, 0, streams[2]>>>(d_blkrowptrA, d_blkcolidxA, d_nnzb_A, d_blkcsr_Val_A, d_blkcsr_Col_A, d_blkcsr_Ptr_A,
+        tile_spgemm_step4_cuda_sparse_kernel_adaptive_warp<SMEM_LRG_TH_DEFAULT, THREADS_USED_LRG><<<num_blocks, num_threads, 0, streams[2]>>>(d_blkrowptrA, d_blkcolidxA, d_nnzb_A, d_blkcsr_Val_A, d_blkcsr_Col_A, d_blkcsr_Ptr_A,
                                                                                                         blkmA, blknA, numblkA, nnzA,
                                                                                                         d_blkcolptrB, d_blkrowidxB, d_nnzb_B, d_blkcsr_Val_B, d_blkcsr_Col_B, d_blkcsr_Ptr_B,
                                                                                                         blkmB, blknB, numblkB, nnzB,

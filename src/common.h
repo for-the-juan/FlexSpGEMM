@@ -29,11 +29,11 @@
 
 // e.g., nvcc -DTILE_SIZE_M=64 ...
 #ifndef TILE_SIZE_M
-#define TILE_SIZE_M 32
+#define TILE_SIZE_M 16
 #endif
 
 #ifndef TILE_SIZE_N
-#define TILE_SIZE_N 32
+#define TILE_SIZE_N 16
 #endif
 
 // WMMA fragment dimensions for Double Precision (FP64)
@@ -110,7 +110,7 @@
 #endif
 
 #ifndef CHECK_RESULT
-#define CHECK_RESULT 1
+#define CHECK_RESULT 0
 #endif
 
 #define HASH_SCALE 107
@@ -118,9 +118,7 @@
 #define SMEM_TNY_TH (TILE_SIZE_M * TILE_SIZE_M / 8)
 #define SMEM_SML_TH (TILE_SIZE_M * TILE_SIZE_M / 8)
 
-#ifndef SMEM_LRG_TH
-#define SMEM_LRG_TH (TILE_SIZE_M * TILE_SIZE_M * 8 / 8)
-#endif
+#define SMEM_LRG_TH_DEFAULT (TILE_SIZE_M * TILE_SIZE_M)
 
 #define SMEM_DNS_TH (TILE_SIZE_M * TILE_SIZE_M)
 

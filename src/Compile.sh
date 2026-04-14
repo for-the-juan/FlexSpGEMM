@@ -1,4 +1,6 @@
-#/bin/bash
+#!/bin/bash
+
+set -e
 
 #compilers
 CC="nvcc"
@@ -37,3 +39,5 @@ for i in ${TILE_SIZE_M[@]}; do
         ${CC} ${NVCC_FLAGS} -Xcompiler -fopenmp -Xcompiler -mfma main.cu -o ../bin/test_m${i}_n${j} ${INCLUDES} ${LIBS} ${OPTIONS} -D VALUE_TYPE=${VALUE_TYPE} -D TILE_SIZE_M=${i} -D TILE_SIZE_N=${j} &
     done
 done
+
+wait

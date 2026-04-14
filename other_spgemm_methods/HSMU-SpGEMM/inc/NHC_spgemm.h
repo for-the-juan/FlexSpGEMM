@@ -54,12 +54,12 @@
 #define compute_total_time 1
 #define compute_conversion_time_and_space 1
 #define compute_step_time 1
-#define checek_kernel 0
-#define output_bin 0
-#define checek_release 0
+#define checek_kernel 1
+#define output_bin 1
+#define checek_release 1
 #define SPGEMM_TRI_NUM 1
-#define compute_variance 0
-#define CHECK_RESULT 0
+#define compute_variance 1
+#define CHECK_RESULT 1
 #define test_NHC 1
 #define AAT 0
 #define UNINT32_MAX 4294967295

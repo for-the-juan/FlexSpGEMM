@@ -12,7 +12,7 @@
 
 int main(int argc, char ** argv)
 {
-	if (argc < 6)
+	if (argc < 8)
     {
         printf("Usage: ./test -d <device_id> -aat <0|1> -tau x <matrix.mtx>\n");
         printf("  -aat 0 : compute C = A * A\n");
@@ -22,6 +22,7 @@ int main(int argc, char ** argv)
     
     int device_id = 0;
     int aat = 0;
+    double tau = 0.0;
 
     int argi = 1;
 
@@ -77,6 +78,26 @@ int main(int argc, char ** argv)
         aat = atoi(argv[argi]);
         argi++;
     }
+
+    char *taustr;
+    if(argc > argi)
+    {
+        taustr = argv[argi];
+        argi++;
+    }
+
+    if (strcmp(taustr, "-tau") != 0) return 0;
+
+    if (argc > argi)
+    {
+        tau = atof(argv[argi]);
+        argi++;
+    }
+
+    int tc_threshold = (tau == 0.0) ? 1 : (int)(tau * TILE_SIZE_M * TILE_SIZE_M);
+    printf("  tc_threshold : %d (ratio=%.3f)\n", tc_threshold, tau);
+    printf("\n");
+    printf("--------------------------------------------------------------------------------\n");
 
  	struct timeval t1, t2;
 	SMatrixA *matrixA = (SMatrixA *)malloc(sizeof(SMatrixA));
@@ -292,7 +313,8 @@ printf("------------------------------------------------------------------------
                &time_tile,
                &gflops_tile,
                filename,
-               &time_symbolic,&time_numeric,&time_malloc);
+               &time_symbolic, &time_numeric, &time_malloc,
+               tc_threshold);
 
     // for (int i = 0; i < 10; i++){
     //     printf("[DEBUG] tile_ptr[%d]: %d\n", i, matrixC->tile_ptr[i]);
@@ -301,28 +323,43 @@ printf("------------------------------------------------------------------------
     // write results to text (csv) file
     FILE *fout = fopen("../result/results_tile.csv", "a");
     if (fout == NULL)
+    {
         printf("Writing results fails.\n");
-    fprintf(fout, "%s,%i,%i,%i,%lld,%lld,%f,%f,%f\n",
-            filename, matrixA->m, matrixA->n, matrixA->nnz, nnzCub, nnzC_computed, compression_rate, time_tile, gflops_tile);
-    fclose(fout);
+    }
+    else
+    {
+        fprintf(fout, "%s,%i,%i,%i,%lld,%lld,%f,%f,%f\n",
+                filename, matrixA->m, matrixA->n, matrixA->nnz, nnzCub, nnzC_computed, compression_rate, time_tile, gflops_tile);
+        fclose(fout);
+    }
 
     // write runtime of each step to text (csv) file
     FILE *fout_time = fopen("../result/step_runtime.csv", "a");
     if (fout_time == NULL)
+    {
         printf("Writing results fails.\n");
-    fprintf(fout_time, "%s,%i,%i,%i,%lld,%lld,%f,%f,%f,%f,%f\n",
-                filename, matrixA->m, matrixA->n, matrixA->nnz, nnzCub, nnzC_computed, compression_rate, time_symbolic, time_numeric, time_malloc);
-    fclose(fout_time);
+    }
+    else
+    {
+        fprintf(fout_time, "%s,%i,%i,%i,%lld,%lld,%f,%f,%f,%f,%f\n",
+                    filename, matrixA->m, matrixA->n, matrixA->nnz, nnzCub, nnzC_computed, compression_rate, time_symbolic, time_numeric, time_malloc);
+        fclose(fout_time);
+    }
     
 
 #if SPACE
     // write memory space of CSR and tile format to text (csv) file
     FILE *fout_mem = fopen("../result/mem-cost.csv", "a");
     if (fout_mem == NULL)
+    {
         printf("Writing results fails.\n");
-    fprintf(fout_mem, "%s,%i,%i,%i,%lld,%lld,%f,%f,%f\n",
-                filename, matrixA->m, matrixA->n, matrixA->nnz, nnzCub, nnzC_computed, compression_rate, csr_mem,mem);
-    fclose(fout_mem);
+    }
+    else
+    {
+        fprintf(fout_mem, "%s,%i,%i,%i,%lld,%lld,%f,%f,%f\n",
+                    filename, matrixA->m, matrixA->n, matrixA->nnz, nnzCub, nnzC_computed, compression_rate, csr_mem,mem);
+        fclose(fout_mem);
+    }
 
 #endif
 
@@ -331,10 +368,15 @@ printf("------------------------------------------------------------------------
     // write preprocessing overhead of CSR and tile format to text (scv) file
     FILE *fout_pre = fopen("../result/preprocessing.csv", "a");
     if (fout_pre == NULL)
+    {
         printf("Writing results fails.\n");
-    fprintf(fout_pre, "%s,%i,%i,%i,%lld,%lld,%f,%f,%f\n",
-                    filename, matrixA->m, matrixA->n, matrixA->nnz, nnzCub, nnzC_computed, compression_rate, time_conversion,time_tile);
-    fclose(fout_pre);
+    }
+    else
+    {
+        fprintf(fout_pre, "%s,%i,%i,%i,%lld,%lld,%f,%f,%f\n",
+                        filename, matrixA->m, matrixA->n, matrixA->nnz, nnzCub, nnzC_computed, compression_rate, time_conversion,time_tile);
+        fclose(fout_pre);
+    }
     
 #endif
 

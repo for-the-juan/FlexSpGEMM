@@ -1,0 +1,231 @@
+
+
+1. 顶层目录结构
+
+- `src/`
+  FlexSpGEMM 主程序源码与编译脚本。
+  关键文件：
+  `main.cu` 主入口；
+  `common.h` 公共宏和运行配置；
+  `Compile.sh` 编译 9 个 tile 可执行文件；
+  其它 `.h/.cu` 为 TileSpGEMM/FlexSpGEMM 的实现细节。
+
+- `bin/`
+  编译完成后的 9 个正式可执行文件。
+  文件名固定为：
+  `test_m8_n8`
+  `test_m8_n16`
+  `test_m8_n32`
+  `test_m16_n8`
+  `test_m16_n16`
+  `test_m16_n32`
+  `test_m32_n8`
+  `test_m32_n16`
+  `test_m32_n32`
+  这 9 个文件是正式测试需要保留的。
+
+- `data/`
+  数据集与数据准备相关文件。
+  关键子目录：
+  `test/`、`train/`、`val/` 为矩阵集合；
+  `mtx_T/` 为转置矩阵集合；
+  `data_prepare/` 为 probe、prime_data、数据合成脚本与输出。
+
+- `data/data_prepare/data_get_sh/`
+  数据准备脚本目录。
+  关键文件：
+  `run_pipeline.py` 一键执行数据准备；
+  `step1_build_probe_features.py` 生成 probeA/probeC 特征与 `probe.csv`；
+  `step2_expand_labels.py` 加硬件参数并扩展 `best_tile/best_tc` 标签；
+  `pipeline_utils.py` 公共路径、表头与 prime_data 解析逻辑。
+
+- `data/data_prepare/data_get/`
+  数据准备结果目录。
+  关键输出：
+  `train.csv`
+  `val.csv`
+  `test.csv`
+  `probe.csv`
+  以及按硬件/模式拆分的：
+  `A100_AA/`
+  `A100_AAT/`
+  `H200_AA/`
+  `H200_AAT/`
+
+- `data/data_prepare/prime_data/`
+  已有的 A100/H200、AA/AAT、81 组合性能数据与硬件描述文件。
+  `hardware.txt` 提供硬件参数；
+  其余目录/文件提供标签扩展与参考性能数据。
+
+- `ML_method/LightGBM/`
+  LightGBM 相关脚本与结果。
+  关键子目录：
+  `quick_predict_model/` 训练好的模型；
+  `predictResult_test100/` test100 预测与正式测试脚本；
+  `predictResult_test12/` test12 全流程脚本与结果；
+  `README.md` 为 LightGBM 侧说明。
+
+- `ML_method/LightGBM/predictResult_test100/`
+  test100 相关脚本和结果。
+  关键文件：
+  `predict_test100.py` 读取 `data_get/test.csv` 做预测并更新 `probe.csv` 的决策时间；
+  `run_predict.sh` 预测入口；
+  `run_test100.sh` 使用 9 个可执行文件执行 A100 正式测试并更新 `test100_result.csv` 与 `probe.csv`；
+  `test100_result.csv` 当前结果；
+  `log/` 当前运行日志。
+
+- `ML_method/LightGBM/predictResult_test12/`
+  test12 相关脚本和结果。
+  关键文件：
+  `predict_test12.py` 先预测，再对每个 test12 条目实跑 81 个组合，输出决策 gflops、最佳实测 gflops 和 ratio，并更新 `probe.csv`；
+  `run_predict.sh` test12 入口；
+  `test12mtx.txt` 12 个测试矩阵名单；
+  `test12_result.csv` 当前结果；
+  `log/` 当前运行日志。
+
+- `result/`
+  FlexSpGEMM 主程序运行时产生的统计结果文件。
+
+- `other_spgemm_methods/`
+  其它 SpGEMM 方法的对比代码与数据，和本次数据准备/test100/test12 主流程相互独立。
+
+
+2. 当前保留的重要结果文件
+
+- `data/data_prepare/data_get/train.csv`
+- `data/data_prepare/data_get/val.csv`
+- `data/data_prepare/data_get/test.csv`
+- `data/data_prepare/data_get/probe.csv`
+- `ML_method/LightGBM/predictResult_test100/test100_result.csv`
+- `ML_method/LightGBM/predictResult_test100/log/`
+- `ML_method/LightGBM/predictResult_test12/test12_result.csv`
+- `ML_method/LightGBM/predictResult_test12/log/`
+
+
+3. 运行命令
+
+3.1 只执行数据准备
+
+```bash
+source /home/stu1/miniconda3/bin/activate FlexSpGEMM
+cd /home/stu1/donghangcheng/code/FlexSpGEMM/data/data_prepare/data_get_sh
+python3 run_pipeline.py
+```
+
+输出：
+`data/data_prepare/data_get/train.csv`
+`data/data_prepare/data_get/val.csv`
+`data/data_prepare/data_get/test.csv`
+`data/data_prepare/data_get/probe.csv`
+
+
+3.2 只执行 test100 预测
+
+```bash
+source /home/stu1/miniconda3/bin/activate FlexSpGEMM
+cd /home/stu1/donghangcheng/code/FlexSpGEMM/ML_method/LightGBM/predictResult_test100
+bash run_predict.sh
+```
+
+输出：
+`test100_result.csv`
+并覆盖更新 `data_get/probe.csv` 中匹配行的 `lightgbm_decision_ms`
+
+
+3.3 执行 test100 正式测试
+
+先确保已经执行过上一步 `run_predict.sh`。
+
+```bash
+source /home/stu1/miniconda3/bin/activate FlexSpGEMM
+cd /home/stu1/donghangcheng/code/FlexSpGEMM/ML_method/LightGBM/predictResult_test100
+bash run_test100.sh
+```
+
+输出：
+`test100_result.csv`
+`predictResult_test100/log/`
+并覆盖更新 `data_get/probe.csv` 中匹配行的 `csr2tile_ms` 和 `pipeline_overhead_ms`
+
+
+3.4 执行 test12 全流程
+
+```bash
+source /home/stu1/miniconda3/bin/activate FlexSpGEMM
+cd /home/stu1/donghangcheng/code/FlexSpGEMM/ML_method/LightGBM/predictResult_test12
+bash run_predict.sh
+```
+
+说明：
+当前 test12 逻辑会对每个 test12 条目的 A100 模式把 81 个 tile+TC 组合全部实跑一遍；
+`gflops` 为决策组合实测值；
+`best_gflops` 为 81 个组合中的最大实测值；
+`gflops_ratio = gflops / best_gflops`。
+
+输出：
+`test12_result.csv`
+`predictResult_test12/log/`
+并覆盖更新 `data_get/probe.csv` 中对应 17 条 A100 记录。
+
+
+3.5 一键执行数据准备 + test100 + test12 全流程
+
+仓库外提供了一个总脚本：
+`/home/stu1/marui/run_full_prepare_test100_test12.sh`
+
+执行命令：
+
+```bash
+bash /home/stu1/marui/run_full_prepare_test100_test12.sh
+```
+
+该脚本会按顺序执行：
+- 清理旧结果
+- 数据准备
+- test100 预测
+- test100 正式测试
+- test12 全流程
+
+总日志会写到：
+`/home/stu1/marui/full_run_logs/`
+
+
+4. 运行耗时参考
+
+以下时间来自一次完整实测，实际会随机器负载、磁盘和 GPU 状态有波动。
+
+- 数据准备 `run_pipeline.py`
+  约 21 分钟
+  一次实测记录为 `1269.9` 秒
+
+- test100 预测 `run_predict.sh`
+  约数秒到 1 分钟内
+  模型推理本身只有十几毫秒，主要耗时在脚本启动与 CSV 读写
+
+- test100 正式测试 `run_test100.sh`
+  约 4 到 5 分钟
+
+- test12 全流程 `predictResult_test12/run_predict.sh`
+  约 90 分钟
+  原因是当前会对 17 个 A100 条目各自执行 81 个组合，总共约 1377 次实际运行
+
+- 一键全流程
+  约 1 小时 55 分钟
+  一次完整实测：
+  开始时间 `2026-04-09 23:38:43`
+  结束时间 `2026-04-10 01:34:28`
+
+
+5. 说明
+
+- `probe.csv` 中：
+  `lightgbm_decision_ms` 来自预测脚本；
+  `csr2tile_ms` 来自决策组合日志中的 `Format Conversion`；
+  `pipeline_overhead_ms = A_probe_ms + C_probe_total_ms + csr2tile_ms + lightgbm_decision_ms`
+
+- 如果先运行 test100，再运行 test12，则 `probe.csv` 中 test12 涉及到的 17 条 A100 记录最终以 test12 最后一次覆盖的结果为准。
+
+- 开源清理时已经保留：
+  正式源码；
+  9 个 `bin/` 可执行文件；
+  当前 `data_get`、`test100`、`test12` 结果文件与日志。

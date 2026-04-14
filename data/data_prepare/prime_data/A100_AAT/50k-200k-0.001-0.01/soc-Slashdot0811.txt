@@ -1,0 +1,2844 @@
+========================================================
+矩阵: soc-Slashdot0811
+子目录: 50k-200k-0.001-0.01
+路径: /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx
+日期: 2026-03-24 10:42:02
+配置: 81 (9 tiles × 9 TC)
+========================================================
+
+--------------------------------------------------------
+配置 1/81: tile=8x8, TC=0/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m8_n8_tc0
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.24646 sec
+the TILE_SIZE_M = 8
+the TILE_SIZE_N = 8
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 80.47 ms
+tile space overhead = 22.75 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  4.91 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  119.16 ms-------------------------
+Number: Tiny: 15926558, Sml: 0, Lrg: 0, Dns: 2152698, Ful: 153232
+Threshold: Tiny: 8, Sml: 8, Lrg: 1, Dns: 64, Ful: 64
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  161.41 ms------------------------
+
+-----------------------Malloc uses 2.55 ms-------------------------------
+Non-empty tiles of C = 27801870
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 288.05 ms, gflops = 0.82
+
+--------------------------------------------------------
+配置 2/81: tile=8x8, TC=1/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m8_n8_tc1
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14457 sec
+the TILE_SIZE_M = 8
+the TILE_SIZE_N = 8
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 70.11 ms
+tile space overhead = 22.75 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  4.91 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  115.66 ms-------------------------
+Number: Tiny: 15926558, Sml: 0, Lrg: 0, Dns: 2152698, Ful: 153232
+Threshold: Tiny: 8, Sml: 8, Lrg: 8, Dns: 64, Ful: 64
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  161.34 ms------------------------
+
+-----------------------Malloc uses 2.57 ms-------------------------------
+Non-empty tiles of C = 27801870
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 284.50 ms, gflops = 0.83
+
+--------------------------------------------------------
+配置 3/81: tile=8x8, TC=2/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m8_n8_tc2
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14771 sec
+the TILE_SIZE_M = 8
+the TILE_SIZE_N = 8
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 90.64 ms
+tile space overhead = 22.75 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  4.89 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  102.22 ms-------------------------
+Number: Tiny: 15926558, Sml: 0, Lrg: 1608708, Dns: 543990, Ful: 153232
+Threshold: Tiny: 8, Sml: 8, Lrg: 16, Dns: 64, Ful: 64
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  138.87 ms------------------------
+
+-----------------------Malloc uses 2.47 ms-------------------------------
+Non-empty tiles of C = 27801870
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 248.48 ms, gflops = 0.95
+
+--------------------------------------------------------
+配置 4/81: tile=8x8, TC=3/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m8_n8_tc3
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14385 sec
+the TILE_SIZE_M = 8
+the TILE_SIZE_N = 8
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 70.36 ms
+tile space overhead = 22.75 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  4.89 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  103.03 ms-------------------------
+Number: Tiny: 15926558, Sml: 0, Lrg: 1993276, Dns: 159422, Ful: 153232
+Threshold: Tiny: 8, Sml: 8, Lrg: 24, Dns: 64, Ful: 64
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  131.63 ms------------------------
+
+-----------------------Malloc uses 2.49 ms-------------------------------
+Non-empty tiles of C = 27801870
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 242.05 ms, gflops = 0.97
+
+--------------------------------------------------------
+配置 5/81: tile=8x8, TC=4/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m8_n8_tc4
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14373 sec
+the TILE_SIZE_M = 8
+the TILE_SIZE_N = 8
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 78.12 ms
+tile space overhead = 22.75 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  4.90 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  103.04 ms-------------------------
+Number: Tiny: 15926558, Sml: 0, Lrg: 2103572, Dns: 49126, Ful: 153232
+Threshold: Tiny: 8, Sml: 8, Lrg: 32, Dns: 64, Ful: 64
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  137.84 ms------------------------
+
+-----------------------Malloc uses 2.54 ms-------------------------------
+Non-empty tiles of C = 27801870
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 248.34 ms, gflops = 0.95
+
+--------------------------------------------------------
+配置 6/81: tile=8x8, TC=5/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m8_n8_tc5
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14413 sec
+the TILE_SIZE_M = 8
+the TILE_SIZE_N = 8
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 113.58 ms
+tile space overhead = 22.75 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  4.87 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  103.08 ms-------------------------
+Number: Tiny: 15926558, Sml: 0, Lrg: 2134018, Dns: 18680, Ful: 153232
+Threshold: Tiny: 8, Sml: 8, Lrg: 40, Dns: 64, Ful: 64
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  129.00 ms------------------------
+
+-----------------------Malloc uses 2.49 ms-------------------------------
+Non-empty tiles of C = 27801870
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 239.46 ms, gflops = 0.98
+
+--------------------------------------------------------
+配置 7/81: tile=8x8, TC=6/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m8_n8_tc6
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14354 sec
+the TILE_SIZE_M = 8
+the TILE_SIZE_N = 8
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 66.32 ms
+tile space overhead = 22.75 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  4.88 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  111.21 ms-------------------------
+Number: Tiny: 15926558, Sml: 0, Lrg: 2143643, Dns: 9055, Ful: 153232
+Threshold: Tiny: 8, Sml: 8, Lrg: 48, Dns: 64, Ful: 64
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  128.25 ms------------------------
+
+-----------------------Malloc uses 2.55 ms-------------------------------
+Non-empty tiles of C = 27801870
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 246.91 ms, gflops = 0.95
+
+--------------------------------------------------------
+配置 8/81: tile=8x8, TC=7/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m8_n8_tc7
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14387 sec
+the TILE_SIZE_M = 8
+the TILE_SIZE_N = 8
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 67.12 ms
+tile space overhead = 22.75 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  4.90 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  113.65 ms-------------------------
+Number: Tiny: 15926558, Sml: 0, Lrg: 2150964, Dns: 1734, Ful: 153232
+Threshold: Tiny: 8, Sml: 8, Lrg: 56, Dns: 64, Ful: 64
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  128.06 ms------------------------
+
+-----------------------Malloc uses 2.57 ms-------------------------------
+Non-empty tiles of C = 27801870
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 249.21 ms, gflops = 0.94
+
+--------------------------------------------------------
+配置 9/81: tile=8x8, TC=8/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m8_n8_tc8
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14352 sec
+the TILE_SIZE_M = 8
+the TILE_SIZE_N = 8
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 75.98 ms
+tile space overhead = 22.75 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  4.88 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  102.48 ms-------------------------
+Number: Tiny: 15926558, Sml: 0, Lrg: 2305930, Dns: 0, Ful: 0
+Threshold: Tiny: 8, Sml: 8, Lrg: 64, Dns: 64, Ful: 64
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  124.65 ms------------------------
+
+-----------------------Malloc uses 3.34 ms-------------------------------
+Non-empty tiles of C = 27801870
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 235.37 ms, gflops = 1.00
+
+--------------------------------------------------------
+配置 10/81: tile=8x16, TC=0/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m8_n16_tc0
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14390 sec
+the TILE_SIZE_M = 8
+the TILE_SIZE_N = 16
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 61.92 ms
+tile space overhead = 26.44 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  5.12 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  127.92 ms-------------------------
+Number: Tiny: 15926558, Sml: 0, Lrg: 0, Dns: 2152698, Ful: 153232
+Threshold: Tiny: 8, Sml: 8, Lrg: 1, Dns: 64, Ful: 64
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  223.77 ms------------------------
+
+-----------------------Malloc uses 2.72 ms-------------------------------
+Non-empty tiles of C = 33021468
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 359.56 ms, gflops = 0.65
+
+--------------------------------------------------------
+配置 11/81: tile=8x16, TC=1/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m8_n16_tc1
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14320 sec
+the TILE_SIZE_M = 8
+the TILE_SIZE_N = 16
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 129.81 ms
+tile space overhead = 26.44 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  5.10 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  143.47 ms-------------------------
+Number: Tiny: 15926558, Sml: 0, Lrg: 0, Dns: 2152698, Ful: 153232
+Threshold: Tiny: 8, Sml: 8, Lrg: 8, Dns: 64, Ful: 64
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  224.02 ms------------------------
+
+-----------------------Malloc uses 2.65 ms-------------------------------
+Non-empty tiles of C = 33021468
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 375.25 ms, gflops = 0.63
+
+--------------------------------------------------------
+配置 12/81: tile=8x16, TC=2/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m8_n16_tc2
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14355 sec
+the TILE_SIZE_M = 8
+the TILE_SIZE_N = 16
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 60.07 ms
+tile space overhead = 26.44 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  5.05 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  127.36 ms-------------------------
+Number: Tiny: 15926558, Sml: 0, Lrg: 1608708, Dns: 543990, Ful: 153232
+Threshold: Tiny: 8, Sml: 8, Lrg: 16, Dns: 64, Ful: 64
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  190.19 ms------------------------
+
+-----------------------Malloc uses 2.65 ms-------------------------------
+Non-empty tiles of C = 33021468
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 325.27 ms, gflops = 0.72
+
+--------------------------------------------------------
+配置 13/81: tile=8x16, TC=3/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m8_n16_tc3
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14500 sec
+the TILE_SIZE_M = 8
+the TILE_SIZE_N = 16
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 58.27 ms
+tile space overhead = 26.44 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  5.10 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  126.73 ms-------------------------
+Number: Tiny: 15926558, Sml: 0, Lrg: 1993276, Dns: 159422, Ful: 153232
+Threshold: Tiny: 8, Sml: 8, Lrg: 24, Dns: 64, Ful: 64
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  179.51 ms------------------------
+
+-----------------------Malloc uses 66.60 ms-------------------------------
+Non-empty tiles of C = 33021468
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 378.06 ms, gflops = 0.62
+
+--------------------------------------------------------
+配置 14/81: tile=8x16, TC=4/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m8_n16_tc4
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14408 sec
+the TILE_SIZE_M = 8
+the TILE_SIZE_N = 16
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 76.91 ms
+tile space overhead = 26.44 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  5.12 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  129.01 ms-------------------------
+Number: Tiny: 15926558, Sml: 0, Lrg: 2103572, Dns: 49126, Ful: 153232
+Threshold: Tiny: 8, Sml: 8, Lrg: 32, Dns: 64, Ful: 64
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  185.04 ms------------------------
+
+-----------------------Malloc uses 2.62 ms-------------------------------
+Non-empty tiles of C = 33021468
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 321.82 ms, gflops = 0.73
+
+--------------------------------------------------------
+配置 15/81: tile=8x16, TC=5/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m8_n16_tc5
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14350 sec
+the TILE_SIZE_M = 8
+the TILE_SIZE_N = 16
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 63.20 ms
+tile space overhead = 26.44 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  5.08 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  127.54 ms-------------------------
+Number: Tiny: 15926558, Sml: 0, Lrg: 2134018, Dns: 18680, Ful: 153232
+Threshold: Tiny: 8, Sml: 8, Lrg: 40, Dns: 64, Ful: 64
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  175.04 ms------------------------
+
+-----------------------Malloc uses 2.73 ms-------------------------------
+Non-empty tiles of C = 33021468
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 310.41 ms, gflops = 0.76
+
+--------------------------------------------------------
+配置 16/81: tile=8x16, TC=6/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m8_n16_tc6
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14400 sec
+the TILE_SIZE_M = 8
+the TILE_SIZE_N = 16
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 103.02 ms
+tile space overhead = 26.44 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  5.10 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  153.95 ms-------------------------
+Number: Tiny: 15926558, Sml: 0, Lrg: 2143643, Dns: 9055, Ful: 153232
+Threshold: Tiny: 8, Sml: 8, Lrg: 48, Dns: 64, Ful: 64
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  175.57 ms------------------------
+
+-----------------------Malloc uses 2.74 ms-------------------------------
+Non-empty tiles of C = 33021468
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 337.37 ms, gflops = 0.70
+
+--------------------------------------------------------
+配置 17/81: tile=8x16, TC=7/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m8_n16_tc7
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14380 sec
+the TILE_SIZE_M = 8
+the TILE_SIZE_N = 16
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 68.14 ms
+tile space overhead = 26.44 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  5.11 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  157.68 ms-------------------------
+Number: Tiny: 15926558, Sml: 0, Lrg: 2150964, Dns: 1734, Ful: 153232
+Threshold: Tiny: 8, Sml: 8, Lrg: 56, Dns: 64, Ful: 64
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  174.68 ms------------------------
+
+-----------------------Malloc uses 2.80 ms-------------------------------
+Non-empty tiles of C = 33021468
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 340.30 ms, gflops = 0.69
+
+--------------------------------------------------------
+配置 18/81: tile=8x16, TC=8/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m8_n16_tc8
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14502 sec
+the TILE_SIZE_M = 8
+the TILE_SIZE_N = 16
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 61.75 ms
+tile space overhead = 26.44 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  5.19 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  127.21 ms-------------------------
+Number: Tiny: 15926558, Sml: 0, Lrg: 2305930, Dns: 0, Ful: 0
+Threshold: Tiny: 8, Sml: 8, Lrg: 64, Dns: 64, Ful: 64
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  171.14 ms------------------------
+
+-----------------------Malloc uses 8.86 ms-------------------------------
+Non-empty tiles of C = 33021468
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 312.42 ms, gflops = 0.75
+
+--------------------------------------------------------
+配置 19/81: tile=8x32, TC=0/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m8_n32_tc0
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14394 sec
+the TILE_SIZE_M = 8
+the TILE_SIZE_N = 32
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 50.24 ms
+tile space overhead = 33.22 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  5.25 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  159.51 ms-------------------------
+Number: Tiny: 15926558, Sml: 0, Lrg: 0, Dns: 2152698, Ful: 153232
+Threshold: Tiny: 8, Sml: 8, Lrg: 1, Dns: 64, Ful: 64
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  270.08 ms------------------------
+
+-----------------------Malloc uses 2.75 ms-------------------------------
+Non-empty tiles of C = 39272136
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 437.61 ms, gflops = 0.54
+
+--------------------------------------------------------
+配置 20/81: tile=8x32, TC=1/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m8_n32_tc1
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14378 sec
+the TILE_SIZE_M = 8
+the TILE_SIZE_N = 32
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 138.85 ms
+tile space overhead = 33.22 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  5.37 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  190.14 ms-------------------------
+Number: Tiny: 15926558, Sml: 0, Lrg: 0, Dns: 2152698, Ful: 153232
+Threshold: Tiny: 8, Sml: 8, Lrg: 8, Dns: 64, Ful: 64
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  269.87 ms------------------------
+
+-----------------------Malloc uses 2.81 ms-------------------------------
+Non-empty tiles of C = 39272136
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 468.21 ms, gflops = 0.50
+
+--------------------------------------------------------
+配置 21/81: tile=8x32, TC=2/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m8_n32_tc2
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14329 sec
+the TILE_SIZE_M = 8
+the TILE_SIZE_N = 32
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 58.09 ms
+tile space overhead = 33.22 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  5.26 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  162.98 ms-------------------------
+Number: Tiny: 15926558, Sml: 0, Lrg: 1608708, Dns: 543990, Ful: 153232
+Threshold: Tiny: 8, Sml: 8, Lrg: 16, Dns: 64, Ful: 64
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  240.90 ms------------------------
+
+-----------------------Malloc uses 3.04 ms-------------------------------
+Non-empty tiles of C = 39272136
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 412.20 ms, gflops = 0.57
+
+--------------------------------------------------------
+配置 22/81: tile=8x32, TC=3/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m8_n32_tc3
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14470 sec
+the TILE_SIZE_M = 8
+the TILE_SIZE_N = 32
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 52.87 ms
+tile space overhead = 33.22 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  5.40 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  184.33 ms-------------------------
+Number: Tiny: 15926558, Sml: 0, Lrg: 1993276, Dns: 159422, Ful: 153232
+Threshold: Tiny: 8, Sml: 8, Lrg: 24, Dns: 64, Ful: 64
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  233.71 ms------------------------
+
+-----------------------Malloc uses 2.78 ms-------------------------------
+Non-empty tiles of C = 39272136
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 426.24 ms, gflops = 0.55
+
+--------------------------------------------------------
+配置 23/81: tile=8x32, TC=4/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m8_n32_tc4
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14332 sec
+the TILE_SIZE_M = 8
+the TILE_SIZE_N = 32
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 52.46 ms
+tile space overhead = 33.22 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  5.24 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  160.48 ms-------------------------
+Number: Tiny: 15926558, Sml: 0, Lrg: 2103572, Dns: 49126, Ful: 153232
+Threshold: Tiny: 8, Sml: 8, Lrg: 32, Dns: 64, Ful: 64
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  231.35 ms------------------------
+
+-----------------------Malloc uses 2.78 ms-------------------------------
+Non-empty tiles of C = 39272136
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 399.88 ms, gflops = 0.59
+
+--------------------------------------------------------
+配置 24/81: tile=8x32, TC=5/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m8_n32_tc5
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14348 sec
+the TILE_SIZE_M = 8
+the TILE_SIZE_N = 32
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 88.19 ms
+tile space overhead = 33.22 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  5.28 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  159.48 ms-------------------------
+Number: Tiny: 15926558, Sml: 0, Lrg: 2134018, Dns: 18680, Ful: 153232
+Threshold: Tiny: 8, Sml: 8, Lrg: 40, Dns: 64, Ful: 64
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  230.60 ms------------------------
+
+-----------------------Malloc uses 2.78 ms-------------------------------
+Non-empty tiles of C = 39272136
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 398.17 ms, gflops = 0.59
+
+--------------------------------------------------------
+配置 25/81: tile=8x32, TC=6/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m8_n32_tc6
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14361 sec
+the TILE_SIZE_M = 8
+the TILE_SIZE_N = 32
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 52.02 ms
+tile space overhead = 33.22 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  5.33 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  160.64 ms-------------------------
+Number: Tiny: 15926558, Sml: 0, Lrg: 2143643, Dns: 9055, Ful: 153232
+Threshold: Tiny: 8, Sml: 8, Lrg: 48, Dns: 64, Ful: 64
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  230.33 ms------------------------
+
+-----------------------Malloc uses 2.85 ms-------------------------------
+Non-empty tiles of C = 39272136
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 399.18 ms, gflops = 0.59
+
+--------------------------------------------------------
+配置 26/81: tile=8x32, TC=7/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m8_n32_tc7
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14360 sec
+the TILE_SIZE_M = 8
+the TILE_SIZE_N = 32
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 57.26 ms
+tile space overhead = 33.22 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  5.35 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  190.66 ms-------------------------
+Number: Tiny: 15926558, Sml: 0, Lrg: 2150964, Dns: 1734, Ful: 153232
+Threshold: Tiny: 8, Sml: 8, Lrg: 56, Dns: 64, Ful: 64
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  230.26 ms------------------------
+
+-----------------------Malloc uses 2.89 ms-------------------------------
+Non-empty tiles of C = 39272136
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 429.17 ms, gflops = 0.55
+
+--------------------------------------------------------
+配置 27/81: tile=8x32, TC=8/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m8_n32_tc8
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14583 sec
+the TILE_SIZE_M = 8
+the TILE_SIZE_N = 32
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 51.84 ms
+tile space overhead = 33.22 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  5.33 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  159.26 ms-------------------------
+Number: Tiny: 15926558, Sml: 0, Lrg: 2305930, Dns: 0, Ful: 0
+Threshold: Tiny: 8, Sml: 8, Lrg: 64, Dns: 64, Ful: 64
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  227.82 ms------------------------
+
+-----------------------Malloc uses 2.75 ms-------------------------------
+Non-empty tiles of C = 39272136
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 395.18 ms, gflops = 0.60
+
+--------------------------------------------------------
+配置 28/81: tile=16x8, TC=0/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m16_n8_tc0
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14415 sec
+the TILE_SIZE_M = 16
+the TILE_SIZE_N = 8
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 116.72 ms
+tile space overhead = 31.09 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  3.97 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  79.57 ms-------------------------
+Number: Tiny: 7637947, Sml: 0, Lrg: 0, Dns: 469798, Ful: 36380
+Threshold: Tiny: 32, Sml: 32, Lrg: 1, Dns: 256, Ful: 256
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  163.51 ms------------------------
+
+-----------------------Malloc uses 2.07 ms-------------------------------
+Non-empty tiles of C = 10955117
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 249.14 ms, gflops = 0.94
+
+--------------------------------------------------------
+配置 29/81: tile=16x8, TC=1/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m16_n8_tc1
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14378 sec
+the TILE_SIZE_M = 16
+the TILE_SIZE_N = 8
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 83.68 ms
+tile space overhead = 31.09 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  3.99 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  80.04 ms-------------------------
+Number: Tiny: 7637947, Sml: 0, Lrg: 0, Dns: 469798, Ful: 36380
+Threshold: Tiny: 32, Sml: 32, Lrg: 32, Dns: 256, Ful: 256
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  163.70 ms------------------------
+
+-----------------------Malloc uses 114.20 ms-------------------------------
+Non-empty tiles of C = 10955117
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 361.95 ms, gflops = 0.65
+
+--------------------------------------------------------
+配置 30/81: tile=16x8, TC=2/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m16_n8_tc2
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14324 sec
+the TILE_SIZE_M = 16
+the TILE_SIZE_N = 8
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 90.17 ms
+tile space overhead = 31.09 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  4.00 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  79.81 ms-------------------------
+Number: Tiny: 7637947, Sml: 0, Lrg: 363967, Dns: 105831, Ful: 36380
+Threshold: Tiny: 32, Sml: 32, Lrg: 64, Dns: 256, Ful: 256
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  145.08 ms------------------------
+
+-----------------------Malloc uses 2.13 ms-------------------------------
+Non-empty tiles of C = 10955117
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 231.03 ms, gflops = 1.02
+
+--------------------------------------------------------
+配置 31/81: tile=16x8, TC=3/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m16_n8_tc3
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14344 sec
+the TILE_SIZE_M = 16
+the TILE_SIZE_N = 8
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 88.34 ms
+tile space overhead = 31.09 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  4.00 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  79.88 ms-------------------------
+Number: Tiny: 7637947, Sml: 0, Lrg: 443445, Dns: 26353, Ful: 36380
+Threshold: Tiny: 32, Sml: 32, Lrg: 96, Dns: 256, Ful: 256
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  140.71 ms------------------------
+
+-----------------------Malloc uses 2.07 ms-------------------------------
+Non-empty tiles of C = 10955117
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 226.68 ms, gflops = 1.04
+
+--------------------------------------------------------
+配置 32/81: tile=16x8, TC=4/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m16_n8_tc4
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14797 sec
+the TILE_SIZE_M = 16
+the TILE_SIZE_N = 8
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 124.40 ms
+tile space overhead = 31.09 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  3.99 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  79.98 ms-------------------------
+Number: Tiny: 7637947, Sml: 0, Lrg: 460595, Dns: 9203, Ful: 36380
+Threshold: Tiny: 32, Sml: 32, Lrg: 128, Dns: 256, Ful: 256
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  138.89 ms------------------------
+
+-----------------------Malloc uses 106.28 ms-------------------------------
+Non-empty tiles of C = 10955117
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 329.16 ms, gflops = 0.72
+
+--------------------------------------------------------
+配置 33/81: tile=16x8, TC=5/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m16_n8_tc5
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14415 sec
+the TILE_SIZE_M = 16
+the TILE_SIZE_N = 8
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 92.75 ms
+tile space overhead = 31.09 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  4.10 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  79.87 ms-------------------------
+Number: Tiny: 7637947, Sml: 0, Lrg: 464700, Dns: 5098, Ful: 36380
+Threshold: Tiny: 32, Sml: 32, Lrg: 160, Dns: 256, Ful: 256
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  138.59 ms------------------------
+
+-----------------------Malloc uses 2.19 ms-------------------------------
+Non-empty tiles of C = 10955117
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 224.77 ms, gflops = 1.05
+
+--------------------------------------------------------
+配置 34/81: tile=16x8, TC=6/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m16_n8_tc6
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14478 sec
+the TILE_SIZE_M = 16
+the TILE_SIZE_N = 8
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 94.05 ms
+tile space overhead = 31.09 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  4.01 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  79.90 ms-------------------------
+Number: Tiny: 7637947, Sml: 0, Lrg: 466961, Dns: 2837, Ful: 36380
+Threshold: Tiny: 32, Sml: 32, Lrg: 192, Dns: 256, Ful: 256
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  138.36 ms------------------------
+
+-----------------------Malloc uses 2.14 ms-------------------------------
+Non-empty tiles of C = 10955117
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 224.43 ms, gflops = 1.05
+
+--------------------------------------------------------
+配置 35/81: tile=16x8, TC=7/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m16_n8_tc7
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14403 sec
+the TILE_SIZE_M = 16
+the TILE_SIZE_N = 8
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 104.36 ms
+tile space overhead = 31.09 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  6.00 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  80.00 ms-------------------------
+Number: Tiny: 7637947, Sml: 0, Lrg: 467967, Dns: 1831, Ful: 36380
+Threshold: Tiny: 32, Sml: 32, Lrg: 224, Dns: 256, Ful: 256
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  138.50 ms------------------------
+
+-----------------------Malloc uses 2.55 ms-------------------------------
+Non-empty tiles of C = 10955117
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 227.07 ms, gflops = 1.04
+
+--------------------------------------------------------
+配置 36/81: tile=16x8, TC=8/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m16_n8_tc8
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14344 sec
+the TILE_SIZE_M = 16
+the TILE_SIZE_N = 8
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 85.24 ms
+tile space overhead = 31.09 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  3.99 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  79.73 ms-------------------------
+Number: Tiny: 7637947, Sml: 0, Lrg: 506178, Dns: 0, Ful: 0
+Threshold: Tiny: 32, Sml: 32, Lrg: 256, Dns: 256, Ful: 256
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  134.40 ms------------------------
+
+-----------------------Malloc uses 119.00 ms-------------------------------
+Non-empty tiles of C = 10955117
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 337.17 ms, gflops = 0.70
+
+--------------------------------------------------------
+配置 37/81: tile=16x16, TC=0/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m16_n16_tc0
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14376 sec
+the TILE_SIZE_M = 16
+the TILE_SIZE_N = 16
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 90.90 ms
+tile space overhead = 37.32 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  3.76 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  90.62 ms-------------------------
+Number: Tiny: 7637947, Sml: 0, Lrg: 0, Dns: 469798, Ful: 36380
+Threshold: Tiny: 32, Sml: 32, Lrg: 1, Dns: 256, Ful: 256
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  172.24 ms------------------------
+
+-----------------------Malloc uses 2.15 ms-------------------------------
+Non-empty tiles of C = 12286491
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 268.79 ms, gflops = 0.88
+
+--------------------------------------------------------
+配置 38/81: tile=16x16, TC=1/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m16_n16_tc1
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14387 sec
+the TILE_SIZE_M = 16
+the TILE_SIZE_N = 16
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 72.34 ms
+tile space overhead = 37.32 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  3.77 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  90.87 ms-------------------------
+Number: Tiny: 7637947, Sml: 0, Lrg: 0, Dns: 469798, Ful: 36380
+Threshold: Tiny: 32, Sml: 32, Lrg: 32, Dns: 256, Ful: 256
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  172.14 ms------------------------
+
+-----------------------Malloc uses 3.81 ms-------------------------------
+Non-empty tiles of C = 12286491
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 270.61 ms, gflops = 0.87
+
+--------------------------------------------------------
+配置 39/81: tile=16x16, TC=2/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m16_n16_tc2
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14320 sec
+the TILE_SIZE_M = 16
+the TILE_SIZE_N = 16
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 99.62 ms
+tile space overhead = 37.32 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  3.76 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  100.31 ms-------------------------
+Number: Tiny: 7637947, Sml: 0, Lrg: 363967, Dns: 105831, Ful: 36380
+Threshold: Tiny: 32, Sml: 32, Lrg: 64, Dns: 256, Ful: 256
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  160.19 ms------------------------
+
+-----------------------Malloc uses 2.31 ms-------------------------------
+Non-empty tiles of C = 12286491
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 266.59 ms, gflops = 0.88
+
+--------------------------------------------------------
+配置 40/81: tile=16x16, TC=3/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m16_n16_tc3
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14400 sec
+the TILE_SIZE_M = 16
+the TILE_SIZE_N = 16
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 82.11 ms
+tile space overhead = 37.32 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  3.76 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  100.68 ms-------------------------
+Number: Tiny: 7637947, Sml: 0, Lrg: 443445, Dns: 26353, Ful: 36380
+Threshold: Tiny: 32, Sml: 32, Lrg: 96, Dns: 256, Ful: 256
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  156.80 ms------------------------
+
+-----------------------Malloc uses 2.28 ms-------------------------------
+Non-empty tiles of C = 12286491
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 263.54 ms, gflops = 0.89
+
+--------------------------------------------------------
+配置 41/81: tile=16x16, TC=4/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m16_n16_tc4
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14387 sec
+the TILE_SIZE_M = 16
+the TILE_SIZE_N = 16
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 71.51 ms
+tile space overhead = 37.32 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  3.76 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  100.53 ms-------------------------
+Number: Tiny: 7637947, Sml: 0, Lrg: 460595, Dns: 9203, Ful: 36380
+Threshold: Tiny: 32, Sml: 32, Lrg: 128, Dns: 256, Ful: 256
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  155.85 ms------------------------
+
+-----------------------Malloc uses 2.29 ms-------------------------------
+Non-empty tiles of C = 12286491
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 262.46 ms, gflops = 0.90
+
+--------------------------------------------------------
+配置 42/81: tile=16x16, TC=5/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m16_n16_tc5
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14988 sec
+the TILE_SIZE_M = 16
+the TILE_SIZE_N = 16
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 77.19 ms
+tile space overhead = 37.32 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  3.78 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  101.12 ms-------------------------
+Number: Tiny: 7637947, Sml: 0, Lrg: 464700, Dns: 5098, Ful: 36380
+Threshold: Tiny: 32, Sml: 32, Lrg: 160, Dns: 256, Ful: 256
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  155.55 ms------------------------
+
+-----------------------Malloc uses 2.40 ms-------------------------------
+Non-empty tiles of C = 12286491
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 262.88 ms, gflops = 0.90
+
+--------------------------------------------------------
+配置 43/81: tile=16x16, TC=6/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m16_n16_tc6
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14404 sec
+the TILE_SIZE_M = 16
+the TILE_SIZE_N = 16
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 85.15 ms
+tile space overhead = 37.32 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  3.78 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  99.93 ms-------------------------
+Number: Tiny: 7637947, Sml: 0, Lrg: 466961, Dns: 2837, Ful: 36380
+Threshold: Tiny: 32, Sml: 32, Lrg: 192, Dns: 256, Ful: 256
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  155.44 ms------------------------
+
+-----------------------Malloc uses 2.15 ms-------------------------------
+Non-empty tiles of C = 12286491
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 261.32 ms, gflops = 0.90
+
+--------------------------------------------------------
+配置 44/81: tile=16x16, TC=7/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m16_n16_tc7
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14336 sec
+the TILE_SIZE_M = 16
+the TILE_SIZE_N = 16
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 77.96 ms
+tile space overhead = 37.32 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  3.78 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  100.60 ms-------------------------
+Number: Tiny: 7637947, Sml: 0, Lrg: 467967, Dns: 1831, Ful: 36380
+Threshold: Tiny: 32, Sml: 32, Lrg: 224, Dns: 256, Ful: 256
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  155.44 ms------------------------
+
+-----------------------Malloc uses 2.31 ms-------------------------------
+Non-empty tiles of C = 12286491
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 262.16 ms, gflops = 0.90
+
+--------------------------------------------------------
+配置 45/81: tile=16x16, TC=8/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m16_n16_tc8
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14548 sec
+the TILE_SIZE_M = 16
+the TILE_SIZE_N = 16
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 84.06 ms
+tile space overhead = 37.32 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  3.77 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  99.78 ms-------------------------
+Number: Tiny: 7637947, Sml: 0, Lrg: 506178, Dns: 0, Ful: 0
+Threshold: Tiny: 32, Sml: 32, Lrg: 256, Dns: 256, Ful: 256
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  152.38 ms------------------------
+
+-----------------------Malloc uses 2.20 ms-------------------------------
+Non-empty tiles of C = 12286491
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 258.15 ms, gflops = 0.91
+
+--------------------------------------------------------
+配置 46/81: tile=16x32, TC=0/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m16_n32_tc0
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14373 sec
+the TILE_SIZE_M = 16
+the TILE_SIZE_N = 32
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 60.65 ms
+tile space overhead = 56.82 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  3.85 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  119.89 ms-------------------------
+Number: Tiny: 7637947, Sml: 0, Lrg: 0, Dns: 469798, Ful: 36380
+Threshold: Tiny: 32, Sml: 32, Lrg: 1, Dns: 256, Ful: 256
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  210.85 ms------------------------
+
+-----------------------Malloc uses 2.45 ms-------------------------------
+Non-empty tiles of C = 13808871
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 337.06 ms, gflops = 0.70
+
+--------------------------------------------------------
+配置 47/81: tile=16x32, TC=1/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m16_n32_tc1
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14392 sec
+the TILE_SIZE_M = 16
+the TILE_SIZE_N = 32
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 58.81 ms
+tile space overhead = 56.82 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  3.86 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  116.65 ms-------------------------
+Number: Tiny: 7637947, Sml: 0, Lrg: 0, Dns: 469798, Ful: 36380
+Threshold: Tiny: 32, Sml: 32, Lrg: 32, Dns: 256, Ful: 256
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  210.95 ms------------------------
+
+-----------------------Malloc uses 2.44 ms-------------------------------
+Non-empty tiles of C = 13808871
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 333.92 ms, gflops = 0.70
+
+--------------------------------------------------------
+配置 48/81: tile=16x32, TC=2/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m16_n32_tc2
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14329 sec
+the TILE_SIZE_M = 16
+the TILE_SIZE_N = 32
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 53.23 ms
+tile space overhead = 56.82 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  3.85 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  106.91 ms-------------------------
+Number: Tiny: 7637947, Sml: 0, Lrg: 363967, Dns: 105831, Ful: 36380
+Threshold: Tiny: 32, Sml: 32, Lrg: 64, Dns: 256, Ful: 256
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  191.52 ms------------------------
+
+-----------------------Malloc uses 2.44 ms-------------------------------
+Non-empty tiles of C = 13808871
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 304.74 ms, gflops = 0.77
+
+--------------------------------------------------------
+配置 49/81: tile=16x32, TC=3/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m16_n32_tc3
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14332 sec
+the TILE_SIZE_M = 16
+the TILE_SIZE_N = 32
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 66.22 ms
+tile space overhead = 56.82 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  3.86 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  116.78 ms-------------------------
+Number: Tiny: 7637947, Sml: 0, Lrg: 443445, Dns: 26353, Ful: 36380
+Threshold: Tiny: 32, Sml: 32, Lrg: 96, Dns: 256, Ful: 256
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  186.38 ms------------------------
+
+-----------------------Malloc uses 2.47 ms-------------------------------
+Non-empty tiles of C = 13808871
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 309.51 ms, gflops = 0.76
+
+--------------------------------------------------------
+配置 50/81: tile=16x32, TC=4/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m16_n32_tc4
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14342 sec
+the TILE_SIZE_M = 16
+the TILE_SIZE_N = 32
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 57.13 ms
+tile space overhead = 56.82 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  3.91 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  121.14 ms-------------------------
+Number: Tiny: 7637947, Sml: 0, Lrg: 460595, Dns: 9203, Ful: 36380
+Threshold: Tiny: 32, Sml: 32, Lrg: 128, Dns: 256, Ful: 256
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  185.18 ms------------------------
+
+-----------------------Malloc uses 2.54 ms-------------------------------
+Non-empty tiles of C = 13808871
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 312.81 ms, gflops = 0.75
+
+--------------------------------------------------------
+配置 51/81: tile=16x32, TC=5/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m16_n32_tc5
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14634 sec
+the TILE_SIZE_M = 16
+the TILE_SIZE_N = 32
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 54.82 ms
+tile space overhead = 56.82 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  3.90 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  119.66 ms-------------------------
+Number: Tiny: 7637947, Sml: 0, Lrg: 464700, Dns: 5098, Ful: 36380
+Threshold: Tiny: 32, Sml: 32, Lrg: 160, Dns: 256, Ful: 256
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  184.81 ms------------------------
+
+-----------------------Malloc uses 2.57 ms-------------------------------
+Non-empty tiles of C = 13808871
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 310.97 ms, gflops = 0.76
+
+--------------------------------------------------------
+配置 52/81: tile=16x32, TC=6/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m16_n32_tc6
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14363 sec
+the TILE_SIZE_M = 16
+the TILE_SIZE_N = 32
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 53.42 ms
+tile space overhead = 56.82 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  3.89 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  117.10 ms-------------------------
+Number: Tiny: 7637947, Sml: 0, Lrg: 466961, Dns: 2837, Ful: 36380
+Threshold: Tiny: 32, Sml: 32, Lrg: 192, Dns: 256, Ful: 256
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  184.49 ms------------------------
+
+-----------------------Malloc uses 2.53 ms-------------------------------
+Non-empty tiles of C = 13808871
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 308.02 ms, gflops = 0.76
+
+--------------------------------------------------------
+配置 53/81: tile=16x32, TC=7/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m16_n32_tc7
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14394 sec
+the TILE_SIZE_M = 16
+the TILE_SIZE_N = 32
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 61.14 ms
+tile space overhead = 56.82 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  3.88 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  116.65 ms-------------------------
+Number: Tiny: 7637947, Sml: 0, Lrg: 467967, Dns: 1831, Ful: 36380
+Threshold: Tiny: 32, Sml: 32, Lrg: 224, Dns: 256, Ful: 256
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  184.43 ms------------------------
+
+-----------------------Malloc uses 2.43 ms-------------------------------
+Non-empty tiles of C = 13808871
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 307.40 ms, gflops = 0.77
+
+--------------------------------------------------------
+配置 54/81: tile=16x32, TC=8/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m16_n32_tc8
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14431 sec
+the TILE_SIZE_M = 16
+the TILE_SIZE_N = 32
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 56.23 ms
+tile space overhead = 56.82 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  3.89 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  117.40 ms-------------------------
+Number: Tiny: 7637947, Sml: 0, Lrg: 506178, Dns: 0, Ful: 0
+Threshold: Tiny: 32, Sml: 32, Lrg: 256, Dns: 256, Ful: 256
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  181.59 ms------------------------
+
+-----------------------Malloc uses 2.57 ms-------------------------------
+Non-empty tiles of C = 13808871
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 305.47 ms, gflops = 0.77
+
+--------------------------------------------------------
+配置 55/81: tile=32x8, TC=0/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m32_n8_tc0
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14393 sec
+the TILE_SIZE_M = 32
+the TILE_SIZE_N = 8
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 119.74 ms
+tile space overhead = 62.96 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  5.05 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  63.64 ms-------------------------
+Number: Tiny: 2994448, Sml: 0, Lrg: 0, Dns: 107089, Ful: 8339
+Threshold: Tiny: 128, Sml: 128, Lrg: 1, Dns: 1024, Ful: 1024
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  150.00 ms------------------------
+
+-----------------------Malloc uses 3.37 ms-------------------------------
+Non-empty tiles of C = 3798422
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 222.08 ms, gflops = 1.06
+
+--------------------------------------------------------
+配置 56/81: tile=32x8, TC=1/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m32_n8_tc1
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14432 sec
+the TILE_SIZE_M = 32
+the TILE_SIZE_N = 8
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 117.52 ms
+tile space overhead = 62.96 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  5.05 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  64.02 ms-------------------------
+Number: Tiny: 2994448, Sml: 0, Lrg: 0, Dns: 107089, Ful: 8339
+Threshold: Tiny: 128, Sml: 128, Lrg: 128, Dns: 1024, Ful: 1024
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  149.62 ms------------------------
+
+-----------------------Malloc uses 138.94 ms-------------------------------
+Non-empty tiles of C = 3798422
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 357.65 ms, gflops = 0.66
+
+--------------------------------------------------------
+配置 57/81: tile=32x8, TC=2/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m32_n8_tc2
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14449 sec
+the TILE_SIZE_M = 32
+the TILE_SIZE_N = 8
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 104.20 ms
+tile space overhead = 62.96 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  5.05 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  63.37 ms-------------------------
+Number: Tiny: 2994448, Sml: 0, Lrg: 84385, Dns: 22704, Ful: 8339
+Threshold: Tiny: 128, Sml: 128, Lrg: 256, Dns: 1024, Ful: 1024
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  125.99 ms------------------------
+
+-----------------------Malloc uses 2.57 ms-------------------------------
+Non-empty tiles of C = 3798422
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 197.00 ms, gflops = 1.19
+
+--------------------------------------------------------
+配置 58/81: tile=32x8, TC=3/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m32_n8_tc3
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14559 sec
+the TILE_SIZE_M = 32
+the TILE_SIZE_N = 8
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 144.35 ms
+tile space overhead = 62.96 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  5.04 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  63.90 ms-------------------------
+Number: Tiny: 2994448, Sml: 0, Lrg: 101714, Dns: 5375, Ful: 8339
+Threshold: Tiny: 128, Sml: 128, Lrg: 384, Dns: 1024, Ful: 1024
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  119.83 ms------------------------
+
+-----------------------Malloc uses 1.99 ms-------------------------------
+Non-empty tiles of C = 3798422
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 190.77 ms, gflops = 1.23
+
+--------------------------------------------------------
+配置 59/81: tile=32x8, TC=4/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m32_n8_tc4
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14382 sec
+the TILE_SIZE_M = 32
+the TILE_SIZE_N = 8
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 155.78 ms
+tile space overhead = 62.96 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  5.09 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  63.85 ms-------------------------
+Number: Tiny: 2994448, Sml: 0, Lrg: 104432, Dns: 2657, Ful: 8339
+Threshold: Tiny: 128, Sml: 128, Lrg: 512, Dns: 1024, Ful: 1024
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  118.33 ms------------------------
+
+-----------------------Malloc uses 2.13 ms-------------------------------
+Non-empty tiles of C = 3798422
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 189.43 ms, gflops = 1.24
+
+--------------------------------------------------------
+配置 60/81: tile=32x8, TC=5/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m32_n8_tc5
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14418 sec
+the TILE_SIZE_M = 32
+the TILE_SIZE_N = 8
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 109.46 ms
+tile space overhead = 62.96 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  5.04 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  63.91 ms-------------------------
+Number: Tiny: 2994448, Sml: 0, Lrg: 105028, Dns: 2061, Ful: 8339
+Threshold: Tiny: 128, Sml: 128, Lrg: 640, Dns: 1024, Ful: 1024
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  117.72 ms------------------------
+
+-----------------------Malloc uses 2.07 ms-------------------------------
+Non-empty tiles of C = 3798422
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 188.75 ms, gflops = 1.25
+
+--------------------------------------------------------
+配置 61/81: tile=32x8, TC=6/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m32_n8_tc6
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14822 sec
+the TILE_SIZE_M = 32
+the TILE_SIZE_N = 8
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 105.24 ms
+tile space overhead = 62.96 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  5.03 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  64.01 ms-------------------------
+Number: Tiny: 2994448, Sml: 0, Lrg: 105832, Dns: 1257, Ful: 8339
+Threshold: Tiny: 128, Sml: 128, Lrg: 768, Dns: 1024, Ful: 1024
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  117.74 ms------------------------
+
+-----------------------Malloc uses 1.99 ms-------------------------------
+Non-empty tiles of C = 3798422
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 188.78 ms, gflops = 1.25
+
+--------------------------------------------------------
+配置 62/81: tile=32x8, TC=7/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m32_n8_tc7
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14534 sec
+the TILE_SIZE_M = 32
+the TILE_SIZE_N = 8
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 141.17 ms
+tile space overhead = 62.96 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  5.05 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  63.60 ms-------------------------
+Number: Tiny: 2994448, Sml: 0, Lrg: 106503, Dns: 586, Ful: 8339
+Threshold: Tiny: 128, Sml: 128, Lrg: 896, Dns: 1024, Ful: 1024
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  117.68 ms------------------------
+
+-----------------------Malloc uses 2.07 ms-------------------------------
+Non-empty tiles of C = 3798422
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 188.43 ms, gflops = 1.25
+
+--------------------------------------------------------
+配置 63/81: tile=32x8, TC=8/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m32_n8_tc8
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14386 sec
+the TILE_SIZE_M = 32
+the TILE_SIZE_N = 8
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 112.66 ms
+tile space overhead = 62.96 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  5.09 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  63.59 ms-------------------------
+Number: Tiny: 2994448, Sml: 0, Lrg: 115428, Dns: 0, Ful: 0
+Threshold: Tiny: 128, Sml: 128, Lrg: 1024, Dns: 1024, Ful: 1024
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  112.40 ms------------------------
+
+-----------------------Malloc uses 2.08 ms-------------------------------
+Non-empty tiles of C = 3798422
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 183.18 ms, gflops = 1.28
+
+--------------------------------------------------------
+配置 64/81: tile=32x16, TC=0/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m32_n16_tc0
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14380 sec
+the TILE_SIZE_M = 32
+the TILE_SIZE_N = 16
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 88.62 ms
+tile space overhead = 71.73 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  4.29 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  68.68 ms-------------------------
+Number: Tiny: 2994448, Sml: 0, Lrg: 0, Dns: 107089, Ful: 8339
+Threshold: Tiny: 128, Sml: 128, Lrg: 1, Dns: 1024, Ful: 1024
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  166.88 ms------------------------
+
+-----------------------Malloc uses 2.08 ms-------------------------------
+Non-empty tiles of C = 4088574
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 241.94 ms, gflops = 0.97
+
+--------------------------------------------------------
+配置 65/81: tile=32x16, TC=1/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m32_n16_tc1
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14419 sec
+the TILE_SIZE_M = 32
+the TILE_SIZE_N = 16
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 88.43 ms
+tile space overhead = 71.73 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  4.29 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  69.17 ms-------------------------
+Number: Tiny: 2994448, Sml: 0, Lrg: 0, Dns: 107089, Ful: 8339
+Threshold: Tiny: 128, Sml: 128, Lrg: 128, Dns: 1024, Ful: 1024
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  166.34 ms------------------------
+
+-----------------------Malloc uses 2.04 ms-------------------------------
+Non-empty tiles of C = 4088574
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 241.87 ms, gflops = 0.97
+
+--------------------------------------------------------
+配置 66/81: tile=32x16, TC=2/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m32_n16_tc2
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14385 sec
+the TILE_SIZE_M = 32
+the TILE_SIZE_N = 16
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 90.98 ms
+tile space overhead = 71.73 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  4.31 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  72.06 ms-------------------------
+Number: Tiny: 2994448, Sml: 0, Lrg: 84385, Dns: 22704, Ful: 8339
+Threshold: Tiny: 128, Sml: 128, Lrg: 256, Dns: 1024, Ful: 1024
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  134.99 ms------------------------
+
+-----------------------Malloc uses 2.15 ms-------------------------------
+Non-empty tiles of C = 4088574
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 213.55 ms, gflops = 1.10
+
+--------------------------------------------------------
+配置 67/81: tile=32x16, TC=3/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m32_n16_tc3
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14719 sec
+the TILE_SIZE_M = 32
+the TILE_SIZE_N = 16
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 92.84 ms
+tile space overhead = 71.73 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  4.29 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  68.79 ms-------------------------
+Number: Tiny: 2994448, Sml: 0, Lrg: 101714, Dns: 5375, Ful: 8339
+Threshold: Tiny: 128, Sml: 128, Lrg: 384, Dns: 1024, Ful: 1024
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  127.90 ms------------------------
+
+-----------------------Malloc uses 2.06 ms-------------------------------
+Non-empty tiles of C = 4088574
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 203.07 ms, gflops = 1.16
+
+--------------------------------------------------------
+配置 68/81: tile=32x16, TC=4/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m32_n16_tc4
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14380 sec
+the TILE_SIZE_M = 32
+the TILE_SIZE_N = 16
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 110.65 ms
+tile space overhead = 71.73 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  4.29 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  72.01 ms-------------------------
+Number: Tiny: 2994448, Sml: 0, Lrg: 104432, Dns: 2657, Ful: 8339
+Threshold: Tiny: 128, Sml: 128, Lrg: 512, Dns: 1024, Ful: 1024
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  126.25 ms------------------------
+
+-----------------------Malloc uses 161.72 ms-------------------------------
+Non-empty tiles of C = 4088574
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 364.30 ms, gflops = 0.65
+
+--------------------------------------------------------
+配置 69/81: tile=32x16, TC=5/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m32_n16_tc5
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14390 sec
+the TILE_SIZE_M = 32
+the TILE_SIZE_N = 16
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 92.38 ms
+tile space overhead = 71.73 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  4.28 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  68.76 ms-------------------------
+Number: Tiny: 2994448, Sml: 0, Lrg: 105028, Dns: 2061, Ful: 8339
+Threshold: Tiny: 128, Sml: 128, Lrg: 640, Dns: 1024, Ful: 1024
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  126.34 ms------------------------
+
+-----------------------Malloc uses 2.03 ms-------------------------------
+Non-empty tiles of C = 4088574
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 201.43 ms, gflops = 1.17
+
+--------------------------------------------------------
+配置 70/81: tile=32x16, TC=6/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m32_n16_tc6
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14401 sec
+the TILE_SIZE_M = 32
+the TILE_SIZE_N = 16
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 104.56 ms
+tile space overhead = 71.73 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  4.33 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  72.30 ms-------------------------
+Number: Tiny: 2994448, Sml: 0, Lrg: 105832, Dns: 1257, Ful: 8339
+Threshold: Tiny: 128, Sml: 128, Lrg: 768, Dns: 1024, Ful: 1024
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  125.36 ms------------------------
+
+-----------------------Malloc uses 2.44 ms-------------------------------
+Non-empty tiles of C = 4088574
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 204.45 ms, gflops = 1.15
+
+--------------------------------------------------------
+配置 71/81: tile=32x16, TC=7/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m32_n16_tc7
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14424 sec
+the TILE_SIZE_M = 32
+the TILE_SIZE_N = 16
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 85.75 ms
+tile space overhead = 71.73 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  4.27 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  72.06 ms-------------------------
+Number: Tiny: 2994448, Sml: 0, Lrg: 106503, Dns: 586, Ful: 8339
+Threshold: Tiny: 128, Sml: 128, Lrg: 896, Dns: 1024, Ful: 1024
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  125.13 ms------------------------
+
+-----------------------Malloc uses 2.07 ms-------------------------------
+Non-empty tiles of C = 4088574
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 203.55 ms, gflops = 1.16
+
+--------------------------------------------------------
+配置 72/81: tile=32x16, TC=8/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m32_n16_tc8
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14359 sec
+the TILE_SIZE_M = 32
+the TILE_SIZE_N = 16
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 102.88 ms
+tile space overhead = 71.73 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  4.28 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  72.06 ms-------------------------
+Number: Tiny: 2994448, Sml: 0, Lrg: 115428, Dns: 0, Ful: 0
+Threshold: Tiny: 128, Sml: 128, Lrg: 1024, Dns: 1024, Ful: 1024
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  120.11 ms------------------------
+
+-----------------------Malloc uses 2.08 ms-------------------------------
+Non-empty tiles of C = 4088574
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 198.55 ms, gflops = 1.19
+
+--------------------------------------------------------
+配置 73/81: tile=32x32, TC=0/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m32_n32_tc0
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14364 sec
+the TILE_SIZE_M = 32
+the TILE_SIZE_N = 32
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 65.38 ms
+tile space overhead = 86.15 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  3.63 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  71.62 ms-------------------------
+Number: Tiny: 2994448, Sml: 0, Lrg: 0, Dns: 107089, Ful: 8339
+Threshold: Tiny: 128, Sml: 128, Lrg: 1, Dns: 1024, Ful: 1024
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  184.38 ms------------------------
+
+-----------------------Malloc uses 2.12 ms-------------------------------
+Non-empty tiles of C = 4394092
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 261.79 ms, gflops = 0.90
+
+--------------------------------------------------------
+配置 74/81: tile=32x32, TC=1/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m32_n32_tc1
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14397 sec
+the TILE_SIZE_M = 32
+the TILE_SIZE_N = 32
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 73.56 ms
+tile space overhead = 86.15 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  3.53 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  71.80 ms-------------------------
+Number: Tiny: 2994448, Sml: 0, Lrg: 0, Dns: 107089, Ful: 8339
+Threshold: Tiny: 128, Sml: 128, Lrg: 128, Dns: 1024, Ful: 1024
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  184.15 ms------------------------
+
+-----------------------Malloc uses 2.10 ms-------------------------------
+Non-empty tiles of C = 4394092
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 261.61 ms, gflops = 0.90
+
+--------------------------------------------------------
+配置 75/81: tile=32x32, TC=2/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m32_n32_tc2
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14311 sec
+the TILE_SIZE_M = 32
+the TILE_SIZE_N = 32
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 70.27 ms
+tile space overhead = 86.15 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  3.61 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  71.89 ms-------------------------
+Number: Tiny: 2994448, Sml: 0, Lrg: 84385, Dns: 22704, Ful: 8339
+Threshold: Tiny: 128, Sml: 128, Lrg: 256, Dns: 1024, Ful: 1024
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  141.34 ms------------------------
+
+-----------------------Malloc uses 2.13 ms-------------------------------
+Non-empty tiles of C = 4394092
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 219.00 ms, gflops = 1.07
+
+--------------------------------------------------------
+配置 76/81: tile=32x32, TC=3/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m32_n32_tc3
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14388 sec
+the TILE_SIZE_M = 32
+the TILE_SIZE_N = 32
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 95.42 ms
+tile space overhead = 86.15 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  3.57 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  71.97 ms-------------------------
+Number: Tiny: 2994448, Sml: 0, Lrg: 101714, Dns: 5375, Ful: 8339
+Threshold: Tiny: 128, Sml: 128, Lrg: 384, Dns: 1024, Ful: 1024
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  131.54 ms------------------------
+
+-----------------------Malloc uses 2.09 ms-------------------------------
+Non-empty tiles of C = 4394092
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 209.21 ms, gflops = 1.13
+
+--------------------------------------------------------
+配置 77/81: tile=32x32, TC=4/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m32_n32_tc4
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14385 sec
+the TILE_SIZE_M = 32
+the TILE_SIZE_N = 32
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 62.79 ms
+tile space overhead = 86.15 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  3.60 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  71.78 ms-------------------------
+Number: Tiny: 2994448, Sml: 0, Lrg: 104432, Dns: 2657, Ful: 8339
+Threshold: Tiny: 128, Sml: 128, Lrg: 512, Dns: 1024, Ful: 1024
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  130.23 ms------------------------
+
+-----------------------Malloc uses 2.10 ms-------------------------------
+Non-empty tiles of C = 4394092
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 207.73 ms, gflops = 1.13
+
+--------------------------------------------------------
+配置 78/81: tile=32x32, TC=5/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m32_n32_tc5
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14387 sec
+the TILE_SIZE_M = 32
+the TILE_SIZE_N = 32
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 73.89 ms
+tile space overhead = 86.15 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  3.56 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  71.78 ms-------------------------
+Number: Tiny: 2994448, Sml: 0, Lrg: 105028, Dns: 2061, Ful: 8339
+Threshold: Tiny: 128, Sml: 128, Lrg: 640, Dns: 1024, Ful: 1024
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  129.82 ms------------------------
+
+-----------------------Malloc uses 2.14 ms-------------------------------
+Non-empty tiles of C = 4394092
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 207.41 ms, gflops = 1.13
+
+--------------------------------------------------------
+配置 79/81: tile=32x32, TC=6/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m32_n32_tc6
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14394 sec
+the TILE_SIZE_M = 32
+the TILE_SIZE_N = 32
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 61.59 ms
+tile space overhead = 86.15 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  3.45 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  71.75 ms-------------------------
+Number: Tiny: 2994448, Sml: 0, Lrg: 105832, Dns: 1257, Ful: 8339
+Threshold: Tiny: 128, Sml: 128, Lrg: 768, Dns: 1024, Ful: 1024
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  128.76 ms------------------------
+
+-----------------------Malloc uses 2.14 ms-------------------------------
+Non-empty tiles of C = 4394092
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 206.20 ms, gflops = 1.14
+
+--------------------------------------------------------
+配置 80/81: tile=32x32, TC=7/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m32_n32_tc7
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14397 sec
+the TILE_SIZE_M = 32
+the TILE_SIZE_N = 32
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 89.94 ms
+tile space overhead = 86.15 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  3.56 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  71.92 ms-------------------------
+Number: Tiny: 2994448, Sml: 0, Lrg: 106503, Dns: 586, Ful: 8339
+Threshold: Tiny: 128, Sml: 128, Lrg: 896, Dns: 1024, Ful: 1024
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  128.51 ms------------------------
+
+-----------------------Malloc uses 126.41 ms-------------------------------
+Non-empty tiles of C = 4394092
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 330.49 ms, gflops = 0.71
+
+--------------------------------------------------------
+配置 81/81: tile=32x32, TC=8/8
+二进制: /home/stu1/marui/AdaSpGEMM_new/bin_tc_fast/test_m32_n32_tc8
+--------------------------------------------------------
+--------------------------------!!!!!!!!------------------------------------
+device_id = 0
+---------------------------------------------------------------
+Device [ 0 ] NVIDIA A100 80GB PCIe @ 1410.00 MHz
+MAT: -------------- /home/stu1/Dataset/training_dataset/50k-200k-0.001-0.01/soc-Slashdot0811.mtx --------------
+input matrix A: ( 77360, 77360 ) nnz = 905468
+ loadfile time    = 0.14395 sec
+the TILE_SIZE_M = 32
+the TILE_SIZE_N = 32
+SpGEMM nnzCub = 117680544
+CSR to Tile conversion uses 70.87 ms
+tile space overhead = 86.15 MB
+CSR space overhead = 10.66 MB
+Dense space overhead = 0.00 MB, DNS_THRESHOLD = 0.70
+step1 ----Calculate the number and tile-column index of tiles of matrixC---
+step1 ---------------------- Runtime is  3.61 ms-------------------------
+
+step2 --------Calculate the number of nonzeros of each tile of matrixC-----
+step2 ---------------------- Runtime is  71.76 ms-------------------------
+Number: Tiny: 2994448, Sml: 0, Lrg: 115428, Dns: 0, Ful: 0
+Threshold: Tiny: 128, Sml: 128, Lrg: 1024, Dns: 1024, Ful: 1024
+ThreadsUsed: Tiny: 16, Sml: 16, Lrg: 32, Dns: 32
+
+step3 ---------Calculate the val&col of nonzeros of matrixC-------------
+step3 ---------------------- Runtime is  122.30 ms------------------------
+
+-----------------------Malloc uses 2.10 ms-------------------------------
+Non-empty tiles of C = 4394092
+nnzC = 81188580
+CUDA  TileSpGEMM runtime is 199.79 ms, gflops = 1.18
+
+=== 全部完成 ===
