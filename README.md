@@ -80,18 +80,6 @@ For this step, we would compile and run the code to collect the results.
 Data Download (3h, 19GB)
 If you prefer to reproduce the complete evaluation pipeline from scratch, we have prepared the LightGBM dataset split in advance. The split configuration is located at: 
 
-
-## Execution of TileSpGEMM
-Our test programs currently support input files encoded using the matrix market format. All matrix market datasets used in this evaluation are publicly available from the SuiteSparse Matrix Collection. 
-
-1. Set CUDA path in the Makefile
-
-2. The command 'make' generates an executable file 'test' for double precision.
-> **make**
-
-3. Run SpGEMM code on matrix data with auto-tuning in double precision. The GPU compilation takes an optional d=<gpu-device, e.g., 0> parameter that specifies the GPU device to run if multiple GPU devices are available at the same time, and another optional aat=<transpose, e.g., 0> parameter that means computing C = A^2 (-aat 0) or C = AA^T (-aat 1)). 
-> **$ ./test -d 0 -aat 0 <path/to/dataset/mtx>**
-
 ## Output information
 
 The \[**Device**\] part prints the GPU device information, including the device ID, device name, and clock rate (in MHz).
