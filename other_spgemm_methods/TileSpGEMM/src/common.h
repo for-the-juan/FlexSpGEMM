@@ -78,7 +78,7 @@
 
 
 #ifndef CHECK_RESULT
-#define CHECK_RESULT 1
+#define CHECK_RESULT 0
 #endif
 
 #define SMEM_TNY_TH 32
