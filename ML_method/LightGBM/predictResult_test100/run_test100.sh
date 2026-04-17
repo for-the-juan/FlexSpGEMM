@@ -1,101 +1,101 @@
 #!/bin/bash
-# Task 2: 运行A100上的AA与AAT乘法，追加结果到test100_result.csv
-# 使用FlexSpGEMM的9个二进制 + -tau 参数实现81种配置
+# Task 2: Run AA and AAT multiplication on A100, append results to test100_result.csv
+# Use FlexSpGEMM's 9 binaries + -tau parameter to implement 81 configurations
 
 set -e
 
-# 自动激活conda环境
+# Auto-activate conda environment
 source /home/stu1/miniconda3/bin/activate FlexSpGEMM
 export LD_LIBRARY_PATH="/usr/local/cuda-11.8/lib64:${LD_LIBRARY_PATH:-}"
 
-# 路径配置
-BIN_DIR="/home/stu1/donghangcheng/code/FlexSpGEMM/bin"
-MATRIX_DIR="/home/stu1/donghangcheng/code/FlexSpGEMM/data/test"
-RESULT_CSV="/home/stu1/donghangcheng/code/FlexSpGEMM/ML_method/LightGBM/predictResult_test100/test100_result.csv"
-LOG_DIR="/home/stu1/donghangcheng/code/FlexSpGEMM/ML_method/LightGBM/predictResult_test100/log"
-PROBE_CSV="/home/stu1/donghangcheng/code/FlexSpGEMM/data/data_prepare/data_get/probe.csv"
+# Path configuration
+BIN_DIR="../../../bin"
+MATRIX_DIR="../../../data/test"
+RESULT_CSV="./test100_result.csv"
+LOG_DIR="./log"
+PROBE_CSV="../../../data/data_prepare/data_get/probe.csv"
 
 echo "================================================================================"
-echo "  Task 2: 运行A100上的AA与AAT乘法"
+echo "  Task 2: Run AA and AAT multiplication on A100"
 echo "================================================================================"
 echo ""
 
-# 检查test100_result.csv是否存在
+# Check if test100_result.csv exists
 if [ ! -f "$RESULT_CSV" ]; then
-    echo "错误: $RESULT_CSV 不存在，请先运行 python3 predict_test100.py"
+    echo "Error: $RESULT_CSV does not exist, please run python3 predict_test100.py first"
     exit 1
 fi
 
-# 清空旧日志
-echo "[步骤 1/3] 准备工作"
-echo "  清空旧日志目录: $LOG_DIR"
+# Clear old logs
+echo "[Step 1/3] Preparation"
+echo "  Clearing old log directory: $LOG_DIR"
 rm -rf "$LOG_DIR"
 mkdir -p "$LOG_DIR"
 
 total_lines=$(tail -n +2 "$RESULT_CSV" | wc -l)
-echo "  待处理条目: $total_lines"
+echo "  Entries to process: $total_lines"
 echo ""
 
-echo "[步骤 2/3] 执行SpGEMM计算"
-echo "  二进制目录: $BIN_DIR"
-echo "  矩阵目录:   $MATRIX_DIR"
+echo "[Step 2/3] Executing SpGEMM computation"
+echo "  Binary directory: $BIN_DIR"
+echo "  Matrix directory: $MATRIX_DIR"
 echo ""
 
-# 计数器
+# Counters
 current=0
 success=0
 failed=0
 skipped=0
 
-# 跳过表头，逐行处理
+# Skip header, process line by line
 while IFS=',' read -r matrix_name gpu mode pred_combo runtime_ms gflops csr2tile_ms; do
 
     current=$((current + 1))
 
-    # 只处理A100的数据
+    # Only process A100 data
     if [ "$gpu" != "A100" ]; then
         skipped=$((skipped + 1))
         continue
     fi
 
-    # 解析pred_combo (格式: 16x16_0/8)
+    # Parse pred_combo (format: 16x16_0/8)
     tile_part=$(echo "$pred_combo" | cut -d'_' -f1)
     tc_part=$(echo "$pred_combo" | cut -d'_' -f2)
     tile_m=$(echo "$tile_part" | cut -d'x' -f1)
     tile_n=$(echo "$tile_part" | cut -d'x' -f2)
     tc_numerator=$(echo "$tc_part" | cut -d'/' -f1)
 
-    # 确定aat参数
+    # Determine aat parameter
     if [ "$mode" = "AA" ]; then
         aat_flag=0
     else
         aat_flag=1
     fi
 
-    # 矩阵文件路径
+    # Matrix file path
     matrix_file="$MATRIX_DIR/${matrix_name}.mtx"
     if [ ! -f "$matrix_file" ]; then
-        echo "  [$current/$total_lines] ⚠ 跳过 ${matrix_name} ${mode} - 矩阵文件不存在"
+        echo "  [$current/$total_lines] ⚠ Skip ${matrix_name} ${mode} - Matrix file not found"
         failed=$((failed + 1))
         continue
     fi
 
     tau_value=$(awk -v tc="$tc_numerator" 'BEGIN { printf "%.3f", tc / 8.0 }')
 
-    # 选择对应的FlexSpGEMM二进制文件
+    # Select corresponding FlexSpGEMM binary file
     binary="$BIN_DIR/test_m${tile_m}_n${tile_n}"
     if [ ! -f "$binary" ]; then
-        echo "  [$current/$total_lines] ⚠ 跳过 ${matrix_name} ${mode} - 二进制文件不存在: test_m${tile_m}_n${tile_n}"
+        echo "  [$current/$total_lines] ⚠ Skip ${matrix_name} ${mode} - Binary file not found: test_m${tile_m}_n${tile_n}"
         failed=$((failed + 1))
         continue
     fi
 
-    # 日志文件
+    # Log file
     log_file="$LOG_DIR/${matrix_name}_${mode}_${tile_m}x${tile_n}_tc${tc_numerator}.log"
 
-    echo "  [$current/$total_lines] 运行: ${matrix_name} | ${mode} | tile=${tile_m}x${tile_n} | TC=${tc_part} | tau=${tau_value}"
+    echo "  [$current/$total_lines] Running: ${matrix_name} | ${mode} | tile=${tile_m}x${tile_n} | TC=${tc_part} | tau=${tau_value}"
 
-    # 运行SpGEMM（允许非0退出码，后续从日志判断是否成功）
+    # Run SpGEMM (allow non-zero exit code, check from log later)
     set +e
     (
         cd "$BIN_DIR" &&
@@ -104,28 +104,28 @@ while IFS=',' read -r matrix_name gpu mode pred_combo runtime_ms gflops csr2tile
     run_status=$?
     set -e
 
-    # 从日志中提取gflops和runtime
+    # Extract gflops and runtime from log
     gf=$(grep -oP '(?i)(?:Throughput\s*:|gflops\s*=)\s*\K[\d.]+' "$log_file" 2>/dev/null | head -1)
     rt=$(grep -oP '(?i)(?:Total Runtime\s*:|TileSpGEMM\s+runtime\s+is\s+)\s*\K[\d.]+' "$log_file" 2>/dev/null | head -1)
 
     if [ -n "$gf" ]; then
-        echo "             ✓ 执行成功 | runtime=${rt}ms | gflops=${gf}"
+        echo "             ✓ Execution successful | runtime=${rt}ms | gflops=${gf}"
         success=$((success + 1))
     elif grep -qi "does not do symmetric matrix" "$log_file" 2>/dev/null; then
-        echo "             ⊘ 跳过对称矩阵（AAT模式不支持）"
+        echo "             ⊘ Skip symmetric matrix (AAT mode not supported)"
         skipped=$((skipped + 1))
     else
-        echo "             ✗ 执行失败 (exit=${run_status})，未获取到数据"
+        echo "             ✗ Execution failed (exit=${run_status}), no data obtained"
         failed=$((failed + 1))
     fi
 
 done < <(tail -n +2 "$RESULT_CSV")
 
 echo ""
-echo "  执行统计: 成功=$success, 失败=$failed, 跳过=$skipped"
+echo "  Execution statistics: success=$success, failed=$failed, skipped=$skipped"
 echo ""
 
-echo "[步骤 3/3] 从日志中提取性能数据并更新CSV"
+echo "[Step 3/3] Extracting performance data from logs and updating CSV"
 
 python << 'PYTHON_SCRIPT'
 import csv
@@ -133,11 +133,11 @@ import re
 import os
 import sys
 
-RESULT_CSV = "/home/stu1/donghangcheng/code/FlexSpGEMM/ML_method/LightGBM/predictResult_test100/test100_result.csv"
-LOG_DIR = "/home/stu1/donghangcheng/code/FlexSpGEMM/ML_method/LightGBM/predictResult_test100/log"
-PROBE_CSV = "/home/stu1/donghangcheng/code/FlexSpGEMM/data/data_prepare/data_get/probe.csv"
+RESULT_CSV = "./test100_result.csv"
+LOG_DIR = "./log"
+PROBE_CSV = "../../../data/data_prepare/data_get/probe.csv"
 
-# 读取现有的CSV
+# Read existing CSV
 rows = []
 with open(RESULT_CSV, 'r') as f:
     reader = csv.DictReader(f)
@@ -145,12 +145,12 @@ with open(RESULT_CSV, 'r') as f:
     for row in reader:
         rows.append(row)
 
-# 正则表达式
+# Regular expressions
 runtime_pattern = re.compile(r'(?:Total Runtime\s*:|TileSpGEMM\s+runtime\s+is\s+)\s*([\d.]+)\s*ms', re.IGNORECASE)
 gflops_pattern = re.compile(r'(?:Throughput\s*:|gflops\s*=)\s*([\d.]+)', re.IGNORECASE)
 csr2tile_pattern = re.compile(r'(?:Format Conversion\s*:|csr2tile.*?)\s*([\d.]+)\s*ms', re.IGNORECASE)
 
-# 更新每一行（清空旧值后重新填充）
+# Update each row (clear old values then refill)
 updated = 0
 total = len(rows)
 for i, row in enumerate(rows, 1):
@@ -159,23 +159,23 @@ for i, row in enumerate(rows, 1):
     mode = row['mode']
     pred_combo = row['pred_combo']
 
-    # 先清空旧结果
+    # Clear old results first
     row['runtime_ms'] = ''
     row['gflops'] = ''
     row['csr2tile_ms'] = ''
 
-    # Task 2 只执行 A100；H200 行保持为空，避免误用 A100 日志回填
+    # Task 2 only executes A100; H200 rows remain empty to avoid using A100 logs
     if gpu != 'A100':
         continue
 
-    # 解析pred_combo
+    # Parse pred_combo
     parts = pred_combo.split('_')
     tile_part = parts[0]
     tc_part = parts[1] if len(parts) > 1 else '0/8'
     tile_m, tile_n = tile_part.split('x')
     tc_numerator = tc_part.split('/')[0]
 
-    # 日志文件
+    # Log file
     log_file = os.path.join(LOG_DIR, f"{matrix_name}_{mode}_{tile_m}x{tile_n}_tc{tc_numerator}.log")
     if not os.path.exists(log_file):
         continue
@@ -199,20 +199,20 @@ for i, row in enumerate(rows, 1):
         updated += 1
 
     if i % 20 == 0:
-        print(f"  进度: {i}/{total} 条日志已解析")
+        print(f"  Progress: {i}/{total} logs parsed")
 
-print(f"  ✓ 共更新 {updated}/{total} 条记录")
+print(f"  ✓ Updated {updated}/{total} records")
 
-# 写入更新后的CSV（覆盖旧文件）
+# Write updated CSV (overwrite old file)
 with open(RESULT_CSV, 'w', newline='') as f:
     writer = csv.DictWriter(f, fieldnames=fieldnames)
     writer.writeheader()
     writer.writerows(rows)
-print(f"  ✓ 结果已覆盖写入: {RESULT_CSV}")
+print(f"  ✓ Results written to: {RESULT_CSV}")
 
-# 更新probe.csv
+# Update probe.csv
 print()
-print("  更新probe.csv...")
+print("  Updating probe.csv...")
 try:
     import pandas as pd
     probe_df = pd.read_csv(PROBE_CSV)
@@ -262,16 +262,16 @@ try:
                 pass
 
     probe_df.to_csv(PROBE_CSV, index=False)
-    print(f"  ✓ probe.csv已更新 ({updated_probe}条)")
+    print(f"  ✓ probe.csv updated ({updated_probe} entries)")
 except Exception as e:
-    print(f"  ⚠ 更新probe.csv失败: {e}")
+    print(f"  ⚠ Failed to update probe.csv: {e}")
 
 PYTHON_SCRIPT
 
 echo ""
 echo "================================================================================"
-echo "✓ Task 2 完成!"
+echo "✓ Task 2 Completed!"
 echo ""
-echo "  结果文件: $RESULT_CSV"
-echo "  日志目录: $LOG_DIR"
+echo "  Result file: $RESULT_CSV"
+echo "  Log directory: $LOG_DIR"
 echo "================================================================================"

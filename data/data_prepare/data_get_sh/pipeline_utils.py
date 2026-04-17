@@ -18,8 +18,8 @@ CODE_ROOT = Path("/home/stu1/donghangcheng/code/FlexSpGEMM")
 DATA_DIR = CODE_ROOT / "data"
 PREP_DIR = DATA_DIR / "data_prepare"
 
-PROBE9_EXEC = PREP_DIR / "probe9_v2" / "tile_probe"
-PROBEC_EXEC = PREP_DIR / "probeC_v2" / "probeC"
+PROBE9_EXEC = DATA_DIR / "tile_probe"
+PROBEC_EXEC = DATA_DIR / "probeC"
 
 PRIME_DATA = PREP_DIR / "prime_data"
 HARDWARE_FILE = PRIME_DATA / "hardware.txt"

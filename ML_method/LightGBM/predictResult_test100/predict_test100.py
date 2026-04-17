@@ -1,8 +1,8 @@
-#!/home/stu1/miniconda3/envs/FlexSpGEMM/bin/python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-predict_test100.py - Task 1: 使用LightGBM模型对test矩阵进行预测
-生成test100_result.csv，包含预测的tile尺寸和TC阈值
+predict_test100.py - Task 1: Use LightGBM model to predict test matrices
+Generate test100_result.csv containing predicted tile size and TC threshold
 """
 
 import csv
@@ -10,13 +10,13 @@ import time
 import pandas as pd
 import lightgbm as lgb
 
-# 路径配置
-MODEL_PATH = "/home/stu1/donghangcheng/code/FlexSpGEMM/ML_method/LightGBM/quick_predict_model/model_tuned.txt"
-TEST_DATASET_CSV = "/home/stu1/donghangcheng/code/FlexSpGEMM/data/data_prepare/data_get/test.csv"
-PROBE_CSV = "/home/stu1/donghangcheng/code/FlexSpGEMM/data/data_prepare/data_get/probe.csv"
-OUTPUT_CSV = "/home/stu1/donghangcheng/code/FlexSpGEMM/ML_method/LightGBM/predictResult_test100/test100_result.csv"
+# Path configuration
+MODEL_PATH = "../../LightGBM/quick_predict_model/model_tuned.txt"
+TEST_DATASET_CSV = "../../../data/data_prepare/data_get/test.csv"
+PROBE_CSV = "../../../data/data_prepare/data_get/probe.csv"
+OUTPUT_CSV = "./test100_result.csv"
 
-# 81个配置组合
+# 81 configuration combinations
 TILES = ["8x8", "8x16", "8x32", "16x8", "16x16", "16x32", "32x8", "32x16", "32x32"]
 TCS = ["0/8", "1/8", "2/8", "3/8", "4/8", "5/8", "6/8", "7/8", "8/8"]
 COMBOS = [f"{t}_{tc}" for t in TILES for tc in TCS]
@@ -38,56 +38,56 @@ def annotate_gpu_mode(df):
 
 def main():
     print("=" * 80)
-    print("  Task 1: 使用LightGBM模型预测test矩阵的最佳配置")
+    print("  Task 1: Use LightGBM model to predict optimal configuration for test matrices")
     print("=" * 80)
     print()
 
-    # 加载模型
-    print("[步骤 1/5] 加载LightGBM模型")
-    print(f"  模型路径: {MODEL_PATH}")
+    # Load model
+    print("[Step 1/5] Loading LightGBM model")
+    print(f"  Model path: {MODEL_PATH}")
     start_time = time.time()
     model = lgb.Booster(model_file=MODEL_PATH)
     model_load_time = time.time() - start_time
-    print(f"  ✓ 模型加载完成")
-    print(f"    - 耗时: {model_load_time:.3f}秒")
-    print(f"    - 树数量: {model.num_trees()}")
+    print(f"  ✓ Model loaded")
+    print(f"    - Time: {model_load_time:.3f}s")
+    print(f"    - Tree count: {model.num_trees()}")
     print()
 
-    # 加载test数据
-    print("[步骤 2/5] 加载测试数据集")
-    print(f"  数据路径: {TEST_DATASET_CSV}")
+    # Load test data
+    print("[Step 2/5] Loading test dataset")
+    print(f"  Data path: {TEST_DATASET_CSV}")
     test_df = pd.read_csv(TEST_DATASET_CSV)
     test_df = annotate_gpu_mode(test_df)
-    print(f"  ✓ 数据加载完成")
-    print(f"    - 样本总数: {len(test_df)}")
-    print(f"    - 矩阵数量: {test_df['matrix_name'].nunique()}")
+    print(f"  ✓ Data loaded")
+    print(f"    - Total samples: {len(test_df)}")
+    print(f"    - Matrix count: {test_df['matrix_name'].nunique()}")
     print()
 
-    # 获取特征列
+    # Get feature columns
     feature_cols = [c for c in test_df.columns if c not in ['matrix_name', 'best_tile', 'best_tc', 'gpu', 'mode']]
-    print(f"  特征列数量: {len(feature_cols)}")
+    print(f"  Feature column count: {len(feature_cols)}")
     print()
 
-    # 预测
-    print("[步骤 3/5] 执行预测")
+    # Predict
+    print("[Step 3/5] Executing prediction")
     X_test = test_df[feature_cols].astype(float)
 
     start_time = time.time()
-    print(f"  正在预测 {len(test_df)} 个样本...")
+    print(f"  Predicting {len(test_df)} samples...")
     y_pred_prob = model.predict(X_test)
     y_pred = y_pred_prob.argmax(axis=1)
     decision_time = time.time() - start_time
 
-    print(f"  ✓ 预测完成")
-    print(f"    - 总耗时: {decision_time * 1000:.2f}ms")
-    print(f"    - 平均决策时间: {decision_time * 1000 / len(test_df):.3f}ms/样本")
+    print(f"  ✓ Prediction completed")
+    print(f"    - Total time: {decision_time * 1000:.2f}ms")
+    print(f"    - Average decision time: {decision_time * 1000 / len(test_df):.3f}ms/sample")
     print()
 
-    # 生成输出
-    print("[步骤 4/5] 生成预测结果")
+    # Generate output
+    print("[Step 4/5] Generating prediction results")
 
     matrix_names = test_df['matrix_name'].unique()
-    print(f"  处理 {len(test_df)} 个样本行...")
+    print(f"  Processing {len(test_df)} sample rows...")
 
     out_rows = []
     decision_ms_per_row = decision_time * 1000 / len(test_df)
@@ -111,24 +111,24 @@ def main():
         })
 
         if i % 50 == 0:
-            print(f"    进度: {i}/{len(test_df)} 样本已处理")
+            print(f"    Progress: {i}/{len(test_df)} samples processed")
 
-    print(f"  ✓ 结果生成完成")
-    print(f"    - 总条目数: {len(out_rows)}")
+    print(f"  ✓ Results generated")
+    print(f"    - Total entries: {len(out_rows)}")
     print()
 
-    # 写入CSV（覆盖旧文件）
-    print(f"  写入结果文件: {OUTPUT_CSV}")
+    # Write to CSV (overwrite old file)
+    print(f"  Writing results to: {OUTPUT_CSV}")
     header = ['matrix_name', 'gpu', 'mode', 'pred_combo', 'runtime_ms', 'gflops', 'csr2tile_ms']
     with open(OUTPUT_CSV, 'w', newline='') as f:
         writer = csv.DictWriter(f, fieldnames=header)
         writer.writeheader()
         writer.writerows(out_rows)
-    print(f"  ✓ 文件已保存（旧文件已覆盖）")
+    print(f"  ✓ File saved (old file overwritten)")
     print()
 
-    # 更新probe.csv
-    print("[步骤 5/5] 更新probe.csv")
+    # Update probe.csv
+    print("[Step 5/5] Updating probe.csv")
     try:
         probe_df = pd.read_csv(PROBE_CSV)
 
@@ -148,17 +148,17 @@ def main():
                 updated_count += 1
 
         probe_df.to_csv(PROBE_CSV, index=False)
-        print(f"  ✓ probe.csv已更新")
-        print(f"    - 更新条目数: {updated_count}")
-        print(f"    - 平均决策时间: {decision_ms_per_row:.3f}ms/样本")
+        print(f"  ✓ probe.csv updated")
+        print(f"    - Updated entries: {updated_count}")
+        print(f"    - Average decision time: {decision_ms_per_row:.3f}ms/sample")
     except Exception as e:
-        print(f"  ⚠ 警告: 更新probe.csv失败: {e}")
+        print(f"  ⚠ Warning: Failed to update probe.csv: {e}")
 
     print()
     print("=" * 80)
-    print("✓ Task 1 完成!")
+    print("✓ Task 1 Completed!")
     print()
-    print("下一步: 运行 ./run_test100.sh 执行实际的SpGEMM计算")
+    print("Next step: Run ./run_test100.sh to execute actual SpGEMM computation")
     print("=" * 80)
 
 if __name__ == '__main__':

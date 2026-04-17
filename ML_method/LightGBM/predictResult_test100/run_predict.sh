@@ -1,8 +1,8 @@
 #!/bin/bash
-# 便捷启动脚本 - Task 1: 预测100个测试矩阵
+# Convenient startup script - Task 1: Predict 100 test matrices
 
-# 自动激活conda环境
+# Auto-activate conda environment
 source /home/stu1/miniconda3/bin/activate FlexSpGEMM
 
-# 运行预测脚本
+# Run prediction script
 python predict_test100.py
