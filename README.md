@@ -11,16 +11,70 @@ General sparse matrix-matrix multiplication(SpGEMM) executes C=AB, where A, B an
 ## Installation
 
 <!-- To use this code, you need to modify the Makefile with correct g++ installation path and use make for automatic installation. -->
-To better reproduce experiment results, we suggest an NVIDIA GPU with compute capability 8.6.
-FlexSpGEMM evaluation requires the CUDA GPU driver, the nvcc CUDA compiler, and the cuSPARSE library, all of them are included with the CUDA Toolkit. The artifacts have been tested on Ubuntu 18.04/22.04, and are expected to run correctly under other Linux distributions.
+FlexSpGEMM evaluation requires the CUDA GPU driver, the nvcc CUDA compiler, and the cuSPARSE library, all of them are included with the CUDA v11.8. The artifacts have been tested on Ubuntu 18.04/22.04, and are expected to run correctly under other Linux distributions. In addition, the Python requirements is shown in environment.yml.
 
 ## Quick Start
 
-### Predict tile shape and tau with LightGBM
+### Step1: Complete the artifact setup
+For the Python environment setup, you should run the command below (About 15min):
+```bash
+conda env create -f environment.yml
+conda activate FlexSpGEMM
+```
+We need FlexSpGEMM environment for downloading.
 
-### Run SpGEMM by prediction
+Then, you can download the train, val and test matrices by the command below:
+```bash
+cd data
+python download_test_matrices.py
+python transpose_mtx.py
+```
+We only need test matrices for quick evaluation and reproduction.
 
-### Result log save and summarize
+### Step2: Predict tile shape and tau with LightGBM, LLM and SVM
+For this step, we also need FlexSpGEMM environment.
+Firstly, please get the data features by the command below:
+```bash
+cd data_prepare/data_get_sh
+python run_pipeline.py
+```
+Then, you can run the command below to get the accuracy of LightGBM, LLM and SVM:
+To quickly reproduce the results in our paper, we load checkpoints from previous trainning.
+```bash
+cd ../../..
+cd ML_method
+```
+
+#### LightGBM
+```bash
+cd LightGBM
+```
+
+#### LLM
+```bash
+cd LLM
+```
+
+#### SVM
+```bash
+cd SVM
+```
+
+Finally, you should run the Python scripts below to collect all the metrics
+```bash
+cd 
+
+```
+### Step3: Run FlexSpGEMM and other four SpGEMM methods
+For this step, we would compile and run the code to collect the results.
+#### FlexSpGEMM
+
+#### HSMU-SpGEMM
+
+#### TileSpGEMM and cuSPARSE
+
+
+### Step4: 
 
 ## Full Evaluation from Scratch
 Data Download (3h, 19GB)
