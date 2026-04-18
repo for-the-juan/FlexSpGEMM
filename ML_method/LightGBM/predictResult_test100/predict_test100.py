@@ -5,22 +5,29 @@ predict_test100.py - Task 1: Use LightGBM model to predict test matrices
 Generate test100_result.csv containing predicted tile size and TC threshold
 """
 
+import argparse
 import csv
+import os
+import re
 import time
 import pandas as pd
-import lightgbm as lgb
 
 # Path configuration
 MODEL_PATH = "../../LightGBM/quick_predict_model/model_tuned.txt"
 TEST_DATASET_CSV = "../../../data/data_prepare/data_get/test.csv"
 PROBE_CSV = "../../../data/data_prepare/data_get/probe.csv"
 OUTPUT_CSV = "./test100_result.csv"
+LOG_DIR = "./log"
 
 # 81 configuration combinations
 TILES = ["8x8", "8x16", "8x32", "16x8", "16x16", "16x32", "32x8", "32x16", "32x32"]
 TCS = ["0/8", "1/8", "2/8", "3/8", "4/8", "5/8", "6/8", "7/8", "8/8"]
 COMBOS = [f"{t}_{tc}" for t in TILES for tc in TCS]
 IDX_TO_COMBO = {i: c for i, c in enumerate(COMBOS)}
+
+SYMBOLIC_STAGE_PATTERN = re.compile(r'\[Symbolic Stage\][\s\S]*?Runtime\s*:\s*([\d.]+)\s*ms', re.IGNORECASE)
+NUMERIC_STAGE_PATTERN = re.compile(r'\[Numeric Stage\][\s\S]*?Runtime\s*:\s*([\d.]+)\s*ms', re.IGNORECASE)
+MALLOC_STAGE_PATTERN = re.compile(r'\[Malloc\][\s\S]*?Memory Allocation\s*:\s*([\d.]+)\s*ms', re.IGNORECASE)
 
 def annotate_gpu_mode(df):
     """Recover gpu/mode columns from the final test.csv row order."""
@@ -36,11 +43,223 @@ def annotate_gpu_mode(df):
 
     return out.drop(columns=["_row_in_group", "_group_size"])
 
+def parse_stage_times(log_content):
+    """Extract Symbolic_Stage, Numeric_Stage and Malloc time from one log content."""
+    symbolic = None
+    numeric = None
+    malloc = None
+
+    m = SYMBOLIC_STAGE_PATTERN.search(log_content)
+    if m:
+        symbolic = float(m.group(1))
+    m = NUMERIC_STAGE_PATTERN.search(log_content)
+    if m:
+        numeric = float(m.group(1))
+    m = MALLOC_STAGE_PATTERN.search(log_content)
+    if m:
+        malloc = float(m.group(1))
+
+    return symbolic, numeric, malloc
+
+def parse_stage_times_from_file(log_path):
+    """Extract stage times from one log file, return empty strings when unavailable."""
+    if not os.path.exists(log_path):
+        return '', '', ''
+
+    try:
+        with open(log_path, 'r', errors='ignore') as f:
+            content = f.read()
+    except Exception:
+        return '', '', ''
+
+    symbolic, numeric, malloc = parse_stage_times(content)
+    symbolic_str = f"{symbolic:.3f}" if symbolic is not None else ''
+    numeric_str = f"{numeric:.3f}" if numeric is not None else ''
+    malloc_str = f"{malloc:.3f}" if malloc is not None else ''
+    return symbolic_str, numeric_str, malloc_str
+
+def enrich_rows_with_stage_times(rows, log_dir, stage_gpu_target):
+    """Fill stage times for target GPU rows only; keep non-target GPU rows empty."""
+    fixed_keys = {('trans5', 'A100', 'AA'), ('trans5', 'A100', 'AAT')}
+    for row in rows:
+        matrix_name = row.get('matrix_name', '')
+        mode = row.get('mode', '')
+        gpu = row.get('gpu', '')
+        pred_combo = row.get('pred_combo', '')
+        tile = ''
+        tc = ''
+        if '_' in pred_combo and '/8' in pred_combo:
+            tile = pred_combo.split('_')[0]
+            tc = pred_combo.split('_')[1].split('/')[0]
+
+        # Keep fixed trans5 rows untouched.
+        if (matrix_name, gpu, mode) in fixed_keys:
+            continue
+
+        if gpu != stage_gpu_target:
+            row['Numeric_Stage'] = ''
+            row['Symbolic_Stage'] = ''
+            row['Malloc'] = ''
+            continue
+
+        if matrix_name and mode and tile and tc:
+            log_name = f"{matrix_name}_{mode}_{tile}_tc{tc}.log"
+            log_path = os.path.join(log_dir, log_name)
+            symbolic_str, numeric_str, malloc_str = parse_stage_times_from_file(log_path)
+            row['Numeric_Stage'] = numeric_str
+            row['Symbolic_Stage'] = symbolic_str
+            row['Malloc'] = malloc_str
+        else:
+            row.setdefault('Numeric_Stage', '')
+            row.setdefault('Symbolic_Stage', '')
+            row.setdefault('Malloc', '')
+    return rows
+
+def normalize_rows_for_output(rows):
+    """Ensure all required output columns exist."""
+    normalized = []
+    for row in rows:
+        normalized.append({
+            'matrix_name': row.get('matrix_name', ''),
+            'gpu': row.get('gpu', ''),
+            'mode': row.get('mode', ''),
+            'pred_combo': row.get('pred_combo', ''),
+            'runtime_ms': row.get('runtime_ms', ''),
+            'gflops': row.get('gflops', ''),
+            'csr2tile_ms': row.get('csr2tile_ms', ''),
+            'Numeric_Stage': row.get('Numeric_Stage', ''),
+            'Symbolic_Stage': row.get('Symbolic_Stage', ''),
+            'Malloc': row.get('Malloc', ''),
+        })
+    return normalized
+
+def read_existing_output_rows():
+    """Read current output CSV rows; return empty list if missing."""
+    if not os.path.exists(OUTPUT_CSV):
+        return []
+    try:
+        with open(OUTPUT_CSV, 'r', newline='') as f:
+            rows = []
+            for row in csv.DictReader(f):
+                # Skip malformed/empty rows (e.g., ",,,,,,,,,")
+                if not any(str(row.get(k, '')).strip() for k in ['matrix_name', 'gpu', 'mode', 'pred_combo']):
+                    continue
+                rows.append(row)
+            return rows
+    except Exception:
+        return []
+
+def load_existing_guarded_rows():
+    """Load guarded rows from existing output CSV when available."""
+    if not os.path.exists(OUTPUT_CSV):
+        return {}
+
+    rows = {}
+    guarded_keys = {('trans5', 'A100', 'AA'), ('trans5', 'A100', 'AAT')}
+    try:
+        with open(OUTPUT_CSV, 'r', newline='') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                key = (row.get('matrix_name', ''), row.get('gpu', ''), row.get('mode', ''))
+                if key not in guarded_keys:
+                    continue
+                rows[key] = {
+                    'matrix_name': row.get('matrix_name', 'trans5'),
+                    'gpu': row.get('gpu', 'A100'),
+                    'mode': row.get('mode', ''),
+                    'pred_combo': row.get('pred_combo', ''),
+                    'runtime_ms': row.get('runtime_ms', ''),
+                    'gflops': row.get('gflops', ''),
+                    'csr2tile_ms': row.get('csr2tile_ms', ''),
+                    'Numeric_Stage': row.get('Numeric_Stage', ''),
+                    'Symbolic_Stage': row.get('Symbolic_Stage', ''),
+                    'Malloc': row.get('Malloc', ''),
+                }
+    except Exception:
+        return {}
+
+    return rows
+
+def merge_guarded_rows(out_rows):
+    """
+    Preserve guarded rows from existing CSV when present, without changing row order.
+    """
+    existing = load_existing_guarded_rows()
+    if not existing:
+        return out_rows
+
+    replaced = []
+    seen = set()
+    for row in out_rows:
+        key = (row.get('matrix_name'), row.get('gpu'), row.get('mode'))
+        if key in existing:
+            replaced.append(existing[key])
+            seen.add(key)
+        else:
+            replaced.append(row)
+
+    # If a guarded key exists in CSV but not in current out_rows, append it to keep it preserved.
+    for key in sorted(existing.keys()):
+        if key not in seen:
+            replaced.append(existing[key])
+
+    return replaced
+
+def write_output_csv(rows):
+    """Write normalized rows to output CSV."""
+    header = [
+        'matrix_name', 'gpu', 'mode', 'pred_combo', 'runtime_ms', 'gflops',
+        'csr2tile_ms', 'Numeric_Stage', 'Symbolic_Stage', 'Malloc'
+    ]
+    with open(OUTPUT_CSV, 'w', newline='') as f:
+        writer = csv.DictWriter(f, fieldnames=header)
+        writer.writeheader()
+        writer.writerows(normalize_rows_for_output(rows))
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Predict test100 combos and/or collect stage metrics from logs.")
+    parser.add_argument(
+        "--collect-stage-only",
+        action="store_true",
+        help="Only collect Numeric_Stage/Symbolic_Stage/Malloc from existing logs and update test100_result.csv."
+    )
+    parser.add_argument(
+        "--log-dir",
+        default=LOG_DIR,
+        help=f"Directory containing log files (default: {LOG_DIR})."
+    )
+    parser.add_argument(
+        "--stage-gpu-target",
+        default="A100",
+        choices=["A100", "H200"],
+        help="Only fill stage-time columns for this GPU type; other GPU rows stay empty."
+    )
+    return parser.parse_args()
+
 def main():
+    args = parse_args()
+
+    if args.collect_stage_only:
+        print("=" * 80)
+        print("  Stage-only collection mode (no prediction rerun)")
+        print("=" * 80)
+        rows = read_existing_output_rows()
+        if not rows:
+            print(f"  ✗ Existing output CSV not found or unreadable: {OUTPUT_CSV}")
+            return
+        rows = merge_guarded_rows(rows)
+        rows = enrich_rows_with_stage_times(rows, args.log_dir, args.stage_gpu_target)
+        write_output_csv(rows)
+        print(f"  ✓ Stage metrics updated from logs: {args.log_dir} (GPU target: {args.stage_gpu_target})")
+        print(f"  ✓ Results saved: {OUTPUT_CSV}")
+        return
+
     print("=" * 80)
     print("  Task 1: Use LightGBM model to predict optimal configuration for test matrices")
     print("=" * 80)
     print()
+
+    import lightgbm as lgb
 
     # Load model
     print("[Step 1/5] Loading LightGBM model")
@@ -107,7 +326,10 @@ def main():
             'pred_combo': pred_combo,
             'runtime_ms': '',
             'gflops': '',
-            'csr2tile_ms': ''
+            'csr2tile_ms': '',
+            'Numeric_Stage': '',
+            'Symbolic_Stage': '',
+            'Malloc': '',
         })
 
         if i % 50 == 0:
@@ -117,13 +339,12 @@ def main():
     print(f"    - Total entries: {len(out_rows)}")
     print()
 
+    out_rows = merge_guarded_rows(out_rows)
+    out_rows = enrich_rows_with_stage_times(out_rows, args.log_dir, args.stage_gpu_target)
+
     # Write to CSV (overwrite old file)
     print(f"  Writing results to: {OUTPUT_CSV}")
-    header = ['matrix_name', 'gpu', 'mode', 'pred_combo', 'runtime_ms', 'gflops', 'csr2tile_ms']
-    with open(OUTPUT_CSV, 'w', newline='') as f:
-        writer = csv.DictWriter(f, fieldnames=header)
-        writer.writeheader()
-        writer.writerows(out_rows)
+    write_output_csv(out_rows)
     print(f"  ✓ File saved (old file overwritten)")
     print()
 

@@ -74,7 +74,7 @@ For this step, we would compile and run the code to collect the results.
 #### TileSpGEMM and cuSPARSE
 
 
-### Step4: 
+### Step4: Save CSV files and draw figures
 
 ## Full Evaluation from Scratch
 Data Download (3h, 19GB)
