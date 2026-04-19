@@ -31,7 +31,7 @@ python transpose_mtx.py
 ```
 We only need test matrices for quick evaluation and reproduction.
 
-### Step2: Predict tile shape and tau with LightGBM, LLM and SVM
+### Step2: Predict tile shape and tau with LightGBM, LLM and SVM and run FlexSpGEMM
 For this step, we also need FlexSpGEMM environment.
 Firstly, please get the data features by the command below:
 ```bash
@@ -47,34 +47,43 @@ cd ML_method
 
 #### LightGBM
 ```bash
-cd LightGBM
+cd LightGBM/predictResult_test12
+python predict_test12.py
+cd ../predictResult_test100
+python predict_test100.py
+cd ../..
 ```
 
 #### LLM
 ```bash
 cd LLM
+download....
+python eval_LLM.py
+cd ..
 ```
 
 #### SVM
 ```bash
 cd SVM
+python eval_svm.py
+cd ..
 ```
 
-Finally, you should run the Python scripts below to collect all the metrics
+### Step3: Run the other SpGEMM methods
+For this step, we would compile and run the code to get the logs of other SpGEMM methods.
 ```bash
-cd 
-
+cd ..
+cd other_spgemm_methods
+bash run_other_SpGEMM_method.sh
 ```
-### Step3: Run FlexSpGEMM and other four SpGEMM methods
-For this step, we would compile and run the code to collect the results.
-#### FlexSpGEMM
-
-#### HSMU-SpGEMM
-
-#### TileSpGEMM and cuSPARSE
-
 
 ### Step4: Save CSV files and draw figures
+For this step, we would collect all CSV files and logs to get the final data and figures.
+```bash
+cd ..
+cd results
+bash collect_and_draw_plots.sh
+```
 
 ## Full Evaluation from Scratch
 Data Download (3h, 19GB)
