@@ -29,6 +29,12 @@ SYMBOLIC_STAGE_PATTERN = re.compile(r'\[Symbolic Stage\][\s\S]*?Runtime\s*:\s*([
 NUMERIC_STAGE_PATTERN = re.compile(r'\[Numeric Stage\][\s\S]*?Runtime\s*:\s*([\d.]+)\s*ms', re.IGNORECASE)
 MALLOC_STAGE_PATTERN = re.compile(r'\[Malloc\][\s\S]*?Memory Allocation\s*:\s*([\d.]+)\s*ms', re.IGNORECASE)
 
+PREDICTION_TIMING_WARMUP_REPEATS = 3
+PREDICTION_TIMING_MIN_REPEATS = 32
+PREDICTION_TIMING_TARGET_MS = 20.0
+PREDICTION_TIMING_MAX_REPEATS = 4096
+DECISION_TIME_PRECISION = 6
+
 def annotate_gpu_mode(df):
     """Recover gpu/mode columns from the final test.csv row order."""
     out = df.copy()
@@ -114,6 +120,33 @@ def enrich_rows_with_stage_times(rows, log_dir, stage_gpu_target):
             row.setdefault('Symbolic_Stage', '')
             row.setdefault('Malloc', '')
     return rows
+
+def measure_single_prediction_ms(model, sample_values):
+    """Measure one-row LightGBM decision latency with a high-resolution timer."""
+    sample_2d = sample_values.reshape(1, -1).copy()
+    target_s = PREDICTION_TIMING_TARGET_MS / 1000.0
+
+    for _ in range(PREDICTION_TIMING_WARMUP_REPEATS):
+        pred = model.predict(sample_2d)
+        pred.argmax(axis=1)
+
+    repeats = PREDICTION_TIMING_MIN_REPEATS
+    while True:
+        start_s = time.perf_counter()
+        for _ in range(repeats):
+            pred = model.predict(sample_2d)
+            pred.argmax(axis=1)
+        elapsed_s = time.perf_counter() - start_s
+        if elapsed_s >= target_s or repeats >= PREDICTION_TIMING_MAX_REPEATS:
+            return elapsed_s * 1000.0 / repeats
+        repeats *= 2
+
+def measure_decision_times_ms(model, feature_df):
+    """Measure decision latency for each sample row independently."""
+    if feature_df.empty:
+        return []
+    feature_values = feature_df.to_numpy(dtype=float, copy=False)
+    return [measure_single_prediction_ms(model, feature_values[pos]) for pos in range(len(feature_values))]
 
 def normalize_rows_for_output(rows):
     """Ensure all required output columns exist."""
@@ -291,15 +324,20 @@ def main():
     print("[Step 3/5] Executing prediction")
     X_test = test_df[feature_cols].astype(float)
 
-    start_time = time.time()
+    start_time = time.perf_counter()
     print(f"  Predicting {len(test_df)} samples...")
     y_pred_prob = model.predict(X_test)
     y_pred = y_pred_prob.argmax(axis=1)
-    decision_time = time.time() - start_time
+    batch_decision_time_ms = (time.perf_counter() - start_time) * 1000.0
+    print("  Measuring per-sample decision latency...")
+    decision_ms_per_row = measure_decision_times_ms(model, X_test)
+    avg_decision_ms = sum(decision_ms_per_row) / len(decision_ms_per_row) if decision_ms_per_row else 0.0
+    min_decision_ms = min(decision_ms_per_row) if decision_ms_per_row else 0.0
+    max_decision_ms = max(decision_ms_per_row) if decision_ms_per_row else 0.0
 
     print(f"  ✓ Prediction completed")
-    print(f"    - Total time: {decision_time * 1000:.2f}ms")
-    print(f"    - Average decision time: {decision_time * 1000 / len(test_df):.3f}ms/sample")
+    print(f"    - Batch prediction time: {batch_decision_time_ms:.2f}ms")
+    print(f"    - Per-row decision time avg/min/max: {avg_decision_ms:.6f}/{min_decision_ms:.6f}/{max_decision_ms:.6f} ms")
     print()
 
     # Generate output
@@ -309,15 +347,18 @@ def main():
     print(f"  Processing {len(test_df)} sample rows...")
 
     out_rows = []
-    decision_ms_per_row = decision_time * 1000 / len(test_df)
+    decision_time_map = {}
 
-    for i, (idx, row) in enumerate(test_df.iterrows(), 1):
+    for pos, (_, row) in enumerate(test_df.iterrows()):
+        i = pos + 1
         matrix_name = row['matrix_name']
         gpu = row['gpu']
         mode = row['mode']
 
-        pred_idx = y_pred[idx]
+        pred_idx = y_pred[pos]
         pred_combo = IDX_TO_COMBO[pred_idx]
+        decision_ms = decision_ms_per_row[pos]
+        decision_time_map[(matrix_name, gpu, mode)] = decision_ms
 
         out_rows.append({
             'matrix_name': matrix_name,
@@ -354,24 +395,20 @@ def main():
         probe_df = pd.read_csv(PROBE_CSV)
 
         if 'lightgbm_decision_ms' not in probe_df.columns:
-            probe_df['lightgbm_decision_ms'] = ''
+            probe_df['lightgbm_decision_ms'] = float('nan')
 
-        prediction_df = pd.DataFrame(out_rows)[['matrix_name', 'gpu', 'mode']]
         updated_count = 0
         for idx, row in probe_df.iterrows():
-            match = prediction_df[
-                (prediction_df['matrix_name'] == row['matrix_name']) &
-                (prediction_df['gpu'] == row['gpu']) &
-                (prediction_df['mode'] == row['mode'])
-            ]
-            if not match.empty:
-                probe_df.at[idx, 'lightgbm_decision_ms'] = round(decision_ms_per_row, 3)
-                updated_count += 1
+            key = (row['matrix_name'], row['gpu'], row['mode'])
+            if key not in decision_time_map:
+                continue
+            probe_df.at[idx, 'lightgbm_decision_ms'] = round(decision_time_map[key], DECISION_TIME_PRECISION)
+            updated_count += 1
 
         probe_df.to_csv(PROBE_CSV, index=False)
         print(f"  ✓ probe.csv updated")
         print(f"    - Updated entries: {updated_count}")
-        print(f"    - Average decision time: {decision_ms_per_row:.3f}ms/sample")
+        print(f"    - Average decision time: {avg_decision_ms:.6f}ms/sample")
     except Exception as e:
         print(f"  ⚠ Warning: Failed to update probe.csv: {e}")
 

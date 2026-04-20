@@ -36,6 +36,12 @@ SYMBOLIC_STAGE_PATTERN = re.compile(r'\[Symbolic Stage\][\s\S]*?Runtime\s*:\s*([
 NUMERIC_STAGE_PATTERN = re.compile(r'\[Numeric Stage\][\s\S]*?Runtime\s*:\s*([\d.]+)\s*ms', re.IGNORECASE)
 MALLOC_STAGE_PATTERN = re.compile(r'\[Malloc\][\s\S]*?Memory Allocation\s*:\s*([\d.]+)\s*ms', re.IGNORECASE)
 
+PREDICTION_TIMING_WARMUP_REPEATS = 3
+PREDICTION_TIMING_MIN_REPEATS = 32
+PREDICTION_TIMING_TARGET_MS = 20.0
+PREDICTION_TIMING_MAX_REPEATS = 4096
+DECISION_TIME_PRECISION = 6
+
 def annotate_gpu_mode(df):
     """Recover gpu/mode columns from the final test.csv row order."""
     out = df.copy()
@@ -253,6 +259,33 @@ def enrich_rows_with_stage_times(rows, log_dir, stage_gpu_target):
             row['Malloc'] = ''
     return rows
 
+def measure_single_prediction_ms(model, sample_values):
+    """Measure one-row LightGBM decision latency with a high-resolution timer."""
+    sample_2d = sample_values.reshape(1, -1).copy()
+    target_s = PREDICTION_TIMING_TARGET_MS / 1000.0
+
+    for _ in range(PREDICTION_TIMING_WARMUP_REPEATS):
+        pred = model.predict(sample_2d)
+        pred.argmax(axis=1)
+
+    repeats = PREDICTION_TIMING_MIN_REPEATS
+    while True:
+        start_s = time.perf_counter()
+        for _ in range(repeats):
+            pred = model.predict(sample_2d)
+            pred.argmax(axis=1)
+        elapsed_s = time.perf_counter() - start_s
+        if elapsed_s >= target_s or repeats >= PREDICTION_TIMING_MAX_REPEATS:
+            return elapsed_s * 1000.0 / repeats
+        repeats *= 2
+
+def measure_decision_times_ms(model, feature_df):
+    """Measure decision latency for each sample row independently."""
+    if feature_df.empty:
+        return []
+    feature_values = feature_df.to_numpy(dtype=float, copy=False)
+    return [measure_single_prediction_ms(model, feature_values[pos]) for pos in range(len(feature_values))]
+
 def normalize_rows_for_output(rows):
     """Ensure all required output columns exist."""
     normalized = []
@@ -314,7 +347,7 @@ def parse_args():
     )
     return parser.parse_args()
 
-def update_probe_csv(out_rows, decision_ms_per_row):
+def update_probe_csv(out_rows, decision_time_map):
     """Overwrite probe.csv values for the test12 A100 rows."""
     print("  Updating probe.csv...")
     try:
@@ -338,7 +371,12 @@ def update_probe_csv(out_rows, decision_ms_per_row):
             if match.empty:
                 continue
 
-            probe_df.at[idx, 'lightgbm_decision_ms'] = round(decision_ms_per_row, 3)
+            key = (probe_row['matrix_name'], probe_row['gpu'], probe_row['mode'])
+            if key not in decision_time_map:
+                continue
+
+            decision_ms = decision_time_map[key]
+            probe_df.at[idx, 'lightgbm_decision_ms'] = round(decision_ms, DECISION_TIME_PRECISION)
             probe_df.at[idx, 'csr2tile_ms'] = float('nan')
             probe_df.at[idx, 'pipeline_overhead_ms'] = float('nan')
             matched_row = match.iloc[0]
@@ -356,7 +394,7 @@ def update_probe_csv(out_rows, decision_ms_per_row):
                         float(a_probe_ms) +
                         float(c_probe_total) +
                         csr2tile_ms +
-                        decision_ms_per_row
+                        decision_ms
                     )
                     probe_df.at[idx, 'pipeline_overhead_ms'] = round(pipeline_overhead, 2)
             updated += 1
@@ -427,13 +465,18 @@ def main():
     feature_cols = [c for c in test_df.columns if c not in ['matrix_name', 'best_tile', 'best_tc', 'gpu', 'mode']]
     X_test = test12_df[feature_cols].astype(float)
 
-    start_time = time.time()
+    start_time = time.perf_counter()
     y_pred_prob = model.predict(X_test)
     y_pred = y_pred_prob.argmax(axis=1)
-    decision_time = time.time() - start_time
-    decision_ms_per_row = decision_time * 1000 / len(test12_df) if len(test12_df) > 0 else 0
+    batch_decision_time_ms = (time.perf_counter() - start_time) * 1000.0
+    print("  Measuring per-sample decision latency...")
+    decision_ms_per_row = measure_decision_times_ms(model, X_test)
+    avg_decision_ms = sum(decision_ms_per_row) / len(decision_ms_per_row) if decision_ms_per_row else 0.0
+    min_decision_ms = min(decision_ms_per_row) if decision_ms_per_row else 0.0
+    max_decision_ms = max(decision_ms_per_row) if decision_ms_per_row else 0.0
 
-    print(f"  ✓ Prediction completed (time: {decision_time * 1000:.2f}ms)")
+    print(f"  ✓ Prediction completed (batch time: {batch_decision_time_ms:.2f}ms)")
+    print(f"    Per-row decision time avg/min/max: {avg_decision_ms:.6f}/{min_decision_ms:.6f}/{max_decision_ms:.6f} ms")
     print()
 
     # Execute SpGEMM
@@ -442,11 +485,14 @@ def main():
     total_tasks = len(test12_df)
     current_task = 0
 
+    decision_time_map = {}
+
     for pos, (_, row) in enumerate(test12_df.iterrows()):
         matrix_name = row['matrix_name']
         mode = row['mode']
         pred_idx = y_pred[pos]
         pred_combo = IDX_TO_COMBO[pred_idx]
+        decision_time_map[(matrix_name, 'A100', mode)] = decision_ms_per_row[pos]
 
         current_task += 1
         print(f"  [{current_task}/{total_tasks}] Matrix={matrix_name} | Mode={mode} | Predicted={pred_combo}")
@@ -496,7 +542,7 @@ def main():
     print(f"    Total entries: {len(out_rows)}")
     print()
 
-    update_probe_csv(out_rows, decision_ms_per_row)
+    update_probe_csv(out_rows, decision_time_map)
     print()
 
     print("=" * 80)
