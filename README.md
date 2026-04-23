@@ -57,7 +57,9 @@ cd ../..
 #### LLM
 ```bash
 cd LLM
-download....
+```
+Then, you can download the checkpoint from https://huggingface.co/MayerJones/LLM_checkpoint/tree/main and save as LLM/checkpoint for LLM inference.
+```bash
 python eval_LLM.py
 cd ..
 ```
