@@ -1,6 +1,8 @@
 #include "common.h"
 #include "utils.h"
 
+#include <assert.h>
+
 /*    STEP1: Calculate the number of non-empty tile of a sparse matrix   */
 /*           Record the offset of tiles in each tile row                 */
 void step1_kernel(SMatrixA *matrix, int tile_size_m, int tile_size_n)
@@ -811,6 +813,7 @@ void matrix_destroy(SMatrixA *matrix)
 {
     free(matrix->tile_ptr);
     free(matrix->tile_columnidx);
+    free(matrix->tile_rowidx);
     free(matrix->tile_nnz);
     free(matrix->tile_csr_Value);
     free(matrix->tile_csr_Col);
@@ -826,17 +829,76 @@ void matrix_destroy(SMatrixA *matrix)
         free(matrix->tile_dense_ready);
         matrix->tile_dense_ready = NULL;
     }
+#if defined(__CUDACC__)
+    if (matrix->d_tile_ptr != NULL)
+    {
+        cudaFree(matrix->d_tile_ptr);
+        matrix->d_tile_ptr = NULL;
+    }
+    if (matrix->d_tile_columnidx != NULL)
+    {
+        cudaFree(matrix->d_tile_columnidx);
+        matrix->d_tile_columnidx = NULL;
+    }
+    if (matrix->d_tile_nnz != NULL)
+    {
+        cudaFree(matrix->d_tile_nnz);
+        matrix->d_tile_nnz = NULL;
+    }
+    if (matrix->d_tile_csr_Value != NULL)
+    {
+        cudaFree(matrix->d_tile_csr_Value);
+        matrix->d_tile_csr_Value = NULL;
+    }
+    if (matrix->d_tile_csr_Col != NULL)
+    {
+        cudaFree(matrix->d_tile_csr_Col);
+        matrix->d_tile_csr_Col = NULL;
+    }
+    if (matrix->d_tile_csr_Ptr != NULL)
+    {
+        cudaFree(matrix->d_tile_csr_Ptr);
+        matrix->d_tile_csr_Ptr = NULL;
+    }
+    if (matrix->d_mask != NULL)
+    {
+        cudaFree(matrix->d_mask);
+        matrix->d_mask = NULL;
+    }
+    if (matrix->d_dense_data != NULL)
+    {
+        cudaFree(matrix->d_dense_data);
+        matrix->d_dense_data = NULL;
+    }
+    if (matrix->d_tile_dense_ready != NULL)
+    {
+        cudaFree(matrix->d_tile_dense_ready);
+        matrix->d_tile_dense_ready = NULL;
+    }
+    matrix->device_tile_ready = 0;
+#endif
 }
 
 void matrix_destroy_B(SMatrixB *matrix)
 {
     free(matrix->tile_ptr);
     free(matrix->tile_columnidx);
+    free(matrix->tile_rowidx);
     free(matrix->tile_nnz);
     free(matrix->tile_csr_Value);
     free(matrix->tile_csr_Col);
     free(matrix->tile_csr_Ptr);
     free(matrix->mask);
+    if (matrix->csc_tile_ptr != NULL)
+    {
+        free(matrix->csc_tile_ptr);
+        matrix->csc_tile_ptr = NULL;
+    }
+    if (matrix->csc_tile_rowidx != NULL)
+    {
+        free(matrix->csc_tile_rowidx);
+        matrix->csc_tile_rowidx = NULL;
+    }
     if (matrix->dense_data != NULL)
     {
         free(matrix->dense_data);
@@ -847,4 +909,77 @@ void matrix_destroy_B(SMatrixB *matrix)
         free(matrix->tile_dense_ready);
         matrix->tile_dense_ready = NULL;
     }
+#if defined(__CUDACC__)
+    if (matrix->d_tile_ptr != NULL)
+    {
+        cudaFree(matrix->d_tile_ptr);
+        matrix->d_tile_ptr = NULL;
+    }
+    if (matrix->d_tile_columnidx != NULL)
+    {
+        cudaFree(matrix->d_tile_columnidx);
+        matrix->d_tile_columnidx = NULL;
+    }
+    if (matrix->d_csc_tile_ptr != NULL)
+    {
+        cudaFree(matrix->d_csc_tile_ptr);
+        matrix->d_csc_tile_ptr = NULL;
+    }
+    if (matrix->d_csc_tile_rowidx != NULL)
+    {
+        cudaFree(matrix->d_csc_tile_rowidx);
+        matrix->d_csc_tile_rowidx = NULL;
+    }
+    if (matrix->d_tile_nnz != NULL)
+    {
+        cudaFree(matrix->d_tile_nnz);
+        matrix->d_tile_nnz = NULL;
+    }
+    if (matrix->d_tile_csr_Value != NULL)
+    {
+        cudaFree(matrix->d_tile_csr_Value);
+        matrix->d_tile_csr_Value = NULL;
+    }
+    if (matrix->d_tile_csr_Col != NULL)
+    {
+        cudaFree(matrix->d_tile_csr_Col);
+        matrix->d_tile_csr_Col = NULL;
+    }
+    if (matrix->d_tile_csr_Ptr != NULL)
+    {
+        cudaFree(matrix->d_tile_csr_Ptr);
+        matrix->d_tile_csr_Ptr = NULL;
+    }
+    if (matrix->d_mask != NULL)
+    {
+        cudaFree(matrix->d_mask);
+        matrix->d_mask = NULL;
+    }
+    if (matrix->d_dense_data != NULL)
+    {
+        cudaFree(matrix->d_dense_data);
+        matrix->d_dense_data = NULL;
+    }
+    if (matrix->d_tile_dense_ready != NULL)
+    {
+        cudaFree(matrix->d_tile_dense_ready);
+        matrix->d_tile_dense_ready = NULL;
+    }
+    if (matrix->d_rowpointer != NULL)
+    {
+        cudaFree(matrix->d_rowpointer);
+        matrix->d_rowpointer = NULL;
+    }
+    if (matrix->d_columnindex != NULL)
+    {
+        cudaFree(matrix->d_columnindex);
+        matrix->d_columnindex = NULL;
+    }
+    if (matrix->d_value != NULL)
+    {
+        cudaFree(matrix->d_value);
+        matrix->d_value = NULL;
+    }
+    matrix->device_tile_ready = 0;
+#endif
 }

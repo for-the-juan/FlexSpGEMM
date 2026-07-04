@@ -55,8 +55,10 @@ int main(int argc, char ** argv)
     cudaDeviceSetLimit( cudaLimitPersistingL2CacheSize, size); 
 
     printf("---------------------------------------------------------------\n");
+    int clock_rate_khz = 0;
+    cudaDeviceGetAttribute(&clock_rate_khz, cudaDevAttrClockRate, device_id);
     printf("Device [ %i ] %s @ %4.2f MHz\n",
-           device_id, deviceProp.name, deviceProp.clockRate * 1e-3f);
+           device_id, deviceProp.name, clock_rate_khz * 1e-3f);
            
     // load AAT flag
     char *aatstr;
@@ -262,29 +264,35 @@ printf("tile space overhead = %.2f MB\n", mem);
 
     // write results to text (scv) file
     FILE *fout = fopen("../data/results_tile.csv", "a");
-    if (fout == NULL)
+    if (fout == NULL) {
         printf("Writing results fails.\n");
-    fprintf(fout, "%s,%i,%i,%i,%lld,%lld,%f,%f,%f\n",
-            filename, matrixA->m, matrixA->n, matrixA->nnz, nnzCub, nnzC_computed, compression_rate, time_tile, gflops_tile);
-    fclose(fout);
+    } else {
+        fprintf(fout, "%s,%i,%i,%i,%lld,%lld,%f,%f,%f\n",
+                filename, matrixA->m, matrixA->n, matrixA->nnz, nnzCub, nnzC_computed, compression_rate, time_tile, gflops_tile);
+        fclose(fout);
+    }
 
     // write runtime of each step to text (scv) file
     FILE *fout_time = fopen("../data/step_runtime.csv", "a");
-    if (fout_time == NULL)
+    if (fout_time == NULL) {
         printf("Writing results fails.\n");
-    fprintf(fout_time, "%s,%i,%i,%i,%lld,%lld,%f,%f,%f,%f,%f\n",
+    } else {
+        fprintf(fout_time, "%s,%i,%i,%i,%lld,%lld,%f,%f,%f,%f,%f\n",
                 filename, matrixA->m, matrixA->n, matrixA->nnz, nnzCub, nnzC_computed, compression_rate, time_step1, time_step2,time_step3,time_malloc);
-    fclose(fout_time);
+        fclose(fout_time);
+    }
     
 
 #if SPACE
     // write memory space of CSR and tile format to text (scv) file
     FILE *fout_mem = fopen("../data/mem-cost.csv", "a");
-    if (fout_mem == NULL)
+    if (fout_mem == NULL) {
         printf("Writing results fails.\n");
-    fprintf(fout_mem, "%s,%i,%i,%i,%lld,%lld,%f,%f,%f\n",
+    } else {
+        fprintf(fout_mem, "%s,%i,%i,%i,%lld,%lld,%f,%f,%f\n",
                 filename, matrixA->m, matrixA->n, matrixA->nnz, nnzCub, nnzC_computed, compression_rate, csr_mem,mem);
-    fclose(fout_mem);
+        fclose(fout_mem);
+    }
 
 #endif
 
@@ -292,11 +300,13 @@ printf("tile space overhead = %.2f MB\n", mem);
 
     // write preprocessing overhead of CSR and tile format to text (scv) file
     FILE *fout_pre = fopen("../data/preprocessing.csv", "a");
-    if (fout_pre == NULL)
+    if (fout_pre == NULL) {
         printf("Writing results fails.\n");
-    fprintf(fout_pre, "%s,%i,%i,%i,%lld,%lld,%f,%f,%f\n",
-                    filename, matrixA->m, matrixA->n, matrixA->nnz, nnzCub, nnzC_computed, compression_rate, time_conversion,time_tile);
-    fclose(fout_pre);
+    } else {
+        fprintf(fout_pre, "%s,%i,%i,%i,%lld,%lld,%f,%f,%f\n",
+                filename, matrixA->m, matrixA->n, matrixA->nnz, nnzCub, nnzC_computed, compression_rate, time_conversion,time_tile);
+        fclose(fout_pre);
+    }
     
 #endif
 

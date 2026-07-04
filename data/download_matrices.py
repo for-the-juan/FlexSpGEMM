@@ -100,7 +100,8 @@ def download_matrix(mat, output_dir, original_name):
     os.makedirs(temp_dir)
     
     # Build download URL
-    matrix_url = f"https://suitesparse-collection-website.herokuapp.com/MM/{matrix_group}/{matrix_name}.tar.gz"
+    # matrix_url = f"https://suitesparse-collection-website.herokuapp.com/MM/{matrix_group}/{matrix_name}.tar.gz"
+    matrix_url = f"http://sparse-files.engr.tamu.edu/MM/{matrix_group}/{matrix_name}.tar.gz"
     temp_tar = os.path.join(temp_dir, f"{matrix_name}.tar.gz")
     
     # Start timing

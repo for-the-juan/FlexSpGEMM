@@ -4,6 +4,7 @@
 #include"utils_cuda_scan.h"
 #include "spgemm_nsparse_kernel.h"
 #include "csr2tile.h"
+#include "gpu_csr2tile.h"
 #include "tilespgemm-cuda.h"
 // #include "spgemm-cpu.h"
 #include "tile2csr.h"
@@ -14,15 +15,22 @@ int main(int argc, char ** argv)
 {
 	if (argc < 8)
     {
-        printf("Usage: ./test -d <device_id> -aat <0|1> -tau x <matrix.mtx>\n");
+        printf("Usage: ./test -d <device_id> -aat <0|1> -tau x [-csr2tile gpu|cpu] <matrix.mtx>\n");
         printf("  -aat 0 : compute C = A * A\n");
         printf("  -aat 1 : compute C = A * A^T\n");
+        printf("  -csr2tile gpu|cpu : select CSR2Tile backend (default: gpu)\n");
         return 0;
     }
     
     int device_id = 0;
     int aat = 0;
     double tau = 0.0;
+    enum Csr2TileMode
+    {
+        CSR2TILE_CPU,
+        CSR2TILE_GPU_DEVICE
+    };
+    Csr2TileMode csr2tile_mode = CSR2TILE_GPU_DEVICE;
 
     int argi = 1;
 
@@ -50,6 +58,8 @@ int main(int argc, char ** argv)
     // Set aside 50% of L2 cache for persisting accesses 
     size_t size = min( int(deviceProp.l2CacheSize * 0.80) , deviceProp.persistingL2CacheMaxSize );
     cudaDeviceSetLimit( cudaLimitPersistingL2CacheSize, size); 
+    int clock_rate_khz = 0;
+    cudaDeviceGetAttribute(&clock_rate_khz, cudaDevAttrClockRate, device_id);
 
     printf("\n");
     printf("================================================================================\n");
@@ -59,7 +69,7 @@ int main(int argc, char ** argv)
     printf("[Device]\n");
     printf("  Device ID   : %d\n", device_id);
     printf("  Device Name : %s\n", deviceProp.name);
-    printf("  Clock Rate  : %.2f MHz\n", deviceProp.clockRate * 1e-3f);
+    printf("  Clock Rate  : %.2f MHz\n", clock_rate_khz * 1e-3f);
     printf("\n");
     printf("--------------------------------------------------------------------------------\n");
            
@@ -94,6 +104,36 @@ int main(int argc, char ** argv)
         argi++;
     }
 
+    if (argc > argi && strcmp(argv[argi], "-csr2tile") == 0)
+    {
+        argi++;
+        if (argc <= argi)
+        {
+            printf("[ERROR] Missing value for -csr2tile. Expected gpu or cpu.\n");
+            return 1;
+        }
+        if (strcmp(argv[argi], "gpu") == 0)
+        {
+            csr2tile_mode = CSR2TILE_GPU_DEVICE;
+        }
+        else if (strcmp(argv[argi], "cpu") == 0)
+        {
+            csr2tile_mode = CSR2TILE_CPU;
+        }
+        else
+        {
+            printf("[ERROR] Invalid -csr2tile value: %s. Expected gpu or cpu.\n", argv[argi]);
+            return 1;
+        }
+        argi++;
+    }
+
+    if (argc <= argi)
+    {
+        printf("[ERROR] Missing matrix file.\n");
+        return 1;
+    }
+
     int tc_threshold = (tau == 0.0) ? 1 : (int)(tau * TILE_SIZE_M * TILE_SIZE_M);
     printf("  tc_threshold : %d (ratio=%.3f)\n", tc_threshold, tau);
     printf("\n");
@@ -102,6 +142,8 @@ int main(int argc, char ** argv)
  	struct timeval t1, t2;
 	SMatrixA *matrixA = (SMatrixA *)malloc(sizeof(SMatrixA));
 	SMatrixB *matrixB = (SMatrixB *)malloc(sizeof(SMatrixB));
+    memset(matrixA, 0, sizeof(SMatrixA));
+    memset(matrixB, 0, sizeof(SMatrixB));
 
 	char  *filename;
     filename = argv[argi];
@@ -189,12 +231,30 @@ int main(int argc, char ** argv)
     
         printf("\n[Preprocessing]\n");
         printf("  NNZ Upper Bound (nnzCub) : %lld\n", nnzCub);
+        const char *csr2tile_backend_name =
+            csr2tile_mode == CSR2TILE_GPU_DEVICE ? "GPU" : "CPU";
+        printf("  CSR2Tile Backend         : %s\n", csr2tile_backend_name);
 
 #if TIMING
         gettimeofday(&t1, NULL);
 #endif
 
-        csr2tile_row_major(matrixA, TILE_SIZE_M, TILE_SIZE_N);
+        if (csr2tile_mode == CSR2TILE_GPU_DEVICE)
+        {
+            try
+            {
+                gpu_csr2tile::gpu_csr2tile_row_major_device(matrixA, TILE_SIZE_M, TILE_SIZE_N);
+            }
+            catch (const std::exception &e)
+            {
+                printf("[ERROR] GPU CSR2Tile failed: %s\n", e.what());
+                return 1;
+            }
+        }
+        else
+        {
+            csr2tile_row_major(matrixA, TILE_SIZE_M, TILE_SIZE_N);
+        }
 
 #if TIMING
         gettimeofday(&t2, NULL);
@@ -230,65 +290,75 @@ printf("------------------------------------------------------------------------
 
 #endif
 
-        csr2tile_col_major(matrixB, TILE_SIZE_M, TILE_SIZE_N);
-
+        if (csr2tile_mode == CSR2TILE_GPU_DEVICE)
+        {
+            try
+            {
+                gpu_csr2tile::gpu_csr2tile_col_major_device(matrixB, TILE_SIZE_M, TILE_SIZE_N);
+            }
+            catch (const std::exception &e)
+            {
+                printf("[ERROR] GPU CSR2Tile for B failed: %s\n", e.what());
+                return 1;
+            }
+        }
+        else
+        {
+            csr2tile_col_major(matrixB, TILE_SIZE_M, TILE_SIZE_N);
+        }
 
         // how much unsigned int to store the row-wise tile bitmask
         int blk_intersec_bitmask_len = ceil((double)matrixA->tilen / 32.0);
         double densityA = (double)matrixA->numtile / ((double)matrixA->tilem*(double)matrixA->tilen);
         double densityB = (double)matrixB->numtile / ((double)matrixB->tilem*(double)matrixB->tilen);
 
+        unsigned int *blk_intersec_bitmask_A = NULL;
+        unsigned int *blk_intersec_bitmask_B = NULL;
 
-        // the total unsigned int to store the whole tile bitmask of matrix A
-        long long int lengthA = (long long int) (matrixA->tilem) * (long long int)( blk_intersec_bitmask_len) ;
-
-    unsigned int *blk_intersec_bitmask_A = (unsigned int *)malloc(lengthA* sizeof(unsigned int));
-    memset(blk_intersec_bitmask_A, 0, lengthA * sizeof(unsigned int));
-    for (int i = 0; i < matrixA->tilem; i++)
-    {
-        for (int j = matrixA->tile_ptr[i]; j < matrixA->tile_ptr[i + 1]; j++)
+        if (csr2tile_mode == CSR2TILE_CPU)
         {
-            int idx = matrixA->tile_columnidx[j];
-            unsigned int bitmask = 1;
-            bitmask <<=  (31- (idx % 32));
-            long long int pos = (long long int)i * (long long int)blk_intersec_bitmask_len + idx / 32;
-            blk_intersec_bitmask_A[pos] |= bitmask;
+            // the total unsigned int to store the whole tile bitmask of matrix A
+            long long int lengthA = (long long int) (matrixA->tilem) * (long long int)( blk_intersec_bitmask_len) ;
+
+            blk_intersec_bitmask_A = (unsigned int *)malloc(lengthA* sizeof(unsigned int));
+            memset(blk_intersec_bitmask_A, 0, lengthA * sizeof(unsigned int));
+            for (int i = 0; i < matrixA->tilem; i++)
+            {
+                for (int j = matrixA->tile_ptr[i]; j < matrixA->tile_ptr[i + 1]; j++)
+                {
+                    int idx = matrixA->tile_columnidx[j];
+                    unsigned int bitmask = 1;
+                    bitmask <<=  (31- (idx % 32));
+                    long long int pos = (long long int)i * (long long int)blk_intersec_bitmask_len + idx / 32;
+                    blk_intersec_bitmask_A[pos] |= bitmask;
+                }
+            }
+
+            // the calculation of tile bitmask of B is similar to A, but for CSC format
+            long long int lengthB = (long long int) (matrixB->tilen) * (long long int)(blk_intersec_bitmask_len) ;
+
+            blk_intersec_bitmask_B = (unsigned int *)malloc(lengthB * sizeof(unsigned int));
+            memset(blk_intersec_bitmask_B, 0, lengthB * sizeof(unsigned int));
+            for (int i = 0; i < matrixB->tilen; i++)
+            {
+                for (int j = matrixB->csc_tile_ptr[i]; j < matrixB->csc_tile_ptr[i+1]; j++)
+                {
+                    int idx = matrixB->csc_tile_rowidx[j];
+                    unsigned int bitmask = 0x1;
+                    bitmask <<= (31 - (idx % 32));
+                    long long int pos = (long long int)i * (long long int )blk_intersec_bitmask_len + idx / 32;
+                    blk_intersec_bitmask_B[pos] |= bitmask;
+                }
+            }
         }
-    }
 
-    // the calculation of tile bitmask of B is similar to A, but for CSC format
-    long long int lengthB = (long long int) (matrixB->tilen) * (long long int)(blk_intersec_bitmask_len) ;
-
-    unsigned int *blk_intersec_bitmask_B = (unsigned int *)malloc(lengthB * sizeof(unsigned int));
-    memset(blk_intersec_bitmask_B, 0, lengthB * sizeof(unsigned int));
-    for (int i = 0; i < matrixB->tilen; i++)
-    {
-        for (int j = matrixB->csc_tile_ptr[i]; j < matrixB->csc_tile_ptr[i+1]; j++)
-        {
-            int idx = matrixB->csc_tile_rowidx[j];
-            unsigned int bitmask = 0x1;
-            bitmask <<= (31 - (idx % 32));
-            long long int pos = (long long int)i * (long long int )blk_intersec_bitmask_len + idx / 32;
-            blk_intersec_bitmask_B[pos] |= bitmask;
-        }
-    }
-
-
-    // generate rowidx of tiles in blockA
-    int *tile_rowidx_A = (int *)malloc (matrixA->numtile * sizeof(int));
-    for (int i = 0; i < matrixA->tilem; i++)
-    {
-        for (int j = matrixA->tile_ptr[i]; j < matrixA->tile_ptr[i+1]; j++)
-        {
-            tile_rowidx_A[j] = i;
-        }
-    }
 
 
 
 #ifdef DEBUG
     // --------------------------------------------------------------------------------------------------------
     SMatrixB *matrixC = (SMatrixB *)malloc(sizeof(SMatrixB));
+    memset(matrixC, 0, sizeof(SMatrixB));
     
     struct timeval tv;
     unsigned long long int nnzC_computed;
@@ -315,6 +385,17 @@ printf("------------------------------------------------------------------------
                filename,
                &time_symbolic, &time_numeric, &time_malloc,
                tc_threshold);
+
+    if (blk_intersec_bitmask_A != NULL)
+    {
+        free(blk_intersec_bitmask_A);
+        blk_intersec_bitmask_A = NULL;
+    }
+    if (blk_intersec_bitmask_B != NULL)
+    {
+        free(blk_intersec_bitmask_B);
+        blk_intersec_bitmask_B = NULL;
+    }
 
     // for (int i = 0; i < 10; i++){
     //     printf("[DEBUG] tile_ptr[%d]: %d\n", i, matrixC->tile_ptr[i]);
@@ -384,8 +465,6 @@ printf("------------------------------------------------------------------------
 #endif
 
 #if CHECK_RESULT
-tile2csr(matrixC, TILE_SIZE_M, TILE_SIZE_M);
-
     unsigned long long int nnzC = 0;
     double compression_rate1 = 0;
     double time_cusparse = 0;
@@ -396,13 +475,13 @@ tile2csr(matrixC, TILE_SIZE_M, TILE_SIZE_M);
     int nnzC_golden = matrixC->nnz;
     bool check_result = CHECK_RESULT;
 
-    MAT_PTR_TYPE *csrRowPtrC_golden = matrixC->rowpointer;
-    int *csrColIdxC_golden = matrixC->columnindex;
-    MAT_VAL_TYPE *csrValC_golden = matrixC->value;
+    MAT_PTR_TYPE *d_csrRowPtrC_golden = matrixC->d_rowpointer;
+    int *d_csrColIdxC_golden = matrixC->d_columnindex;
+    MAT_VAL_TYPE *d_csrValC_golden = matrixC->d_value;
 
-    int cusparse_ret = spgemm_cu(matrixA->m, matrixA->n, matrixA->nnz, matrixA->rowpointer, matrixA->columnindex, matrixA->value,
+    int cusparse_ret = spgemm_cu_device_compare(matrixA->m, matrixA->n, matrixA->nnz, matrixA->rowpointer, matrixA->columnindex, matrixA->value,
               matrixB->m, matrixB->n, matrixB->nnz, matrixB->rowpointer, matrixB->columnindex, matrixB->value,
-              mC, nC, nnzC_golden, csrRowPtrC_golden, csrColIdxC_golden, csrValC_golden,
+              mC, nC, nnzC_golden, d_csrRowPtrC_golden, d_csrColIdxC_golden, d_csrValC_golden,
               check_result, nnzCub, &nnzC, &compression_rate1, &time_cusparse, &gflops_cusparse);
 
     printf("[Speedup]\n");
@@ -419,6 +498,8 @@ tile2csr(matrixC, TILE_SIZE_M, TILE_SIZE_M);
     printf("--------------------------------------------------------------------------------\n");
 
 #endif
+    matrix_destroy_B(matrixC);
+    free(matrixC);
     matrix_destroy(matrixA);
     matrix_destroy_B(matrixB);
 

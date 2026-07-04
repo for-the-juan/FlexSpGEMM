@@ -33,9 +33,41 @@ int spgemm_cu (         const int             mA,
                  mB, nB, nnzB, csrRowPtrB, csrColIdxB, csrValB,
                  mC, nC, nnzC_golden, csrRowPtrC_golden, csrColIdxC_golden, csrValC_golden,
                  check_result, nnzCub, nnzC, compression_rate, time_segmerge, gflops_segmerge);
+	    return ret;
+	}
+
+int spgemm_cu_device_compare ( const int             mA,
+	                            const int             nA,
+	                            const int             nnzA,
+	                            const MAT_PTR_TYPE   *csrRowPtrA,
+	                            const int            *csrColIdxA,
+	                            const MAT_VAL_TYPE   *csrValA,
+	                            const int             mB,
+	                            const int             nB,
+	                            const int             nnzB,
+	                            const MAT_PTR_TYPE   *csrRowPtrB,
+	                            const int            *csrColIdxB,
+	                            const MAT_VAL_TYPE   *csrValB,
+	                            const int             mC,
+	                            const int             nC,
+	                            const MAT_PTR_TYPE    nnzC_golden,
+	                            const MAT_PTR_TYPE   *d_csrRowPtrC_golden,
+	                            const int            *d_csrColIdxC_golden,
+	                            const MAT_VAL_TYPE   *d_csrValC_golden,
+	                            const bool           check_result,
+	                            unsigned long long int nnzCub,
+	                            unsigned long long int *nnzC,
+	                            double        *compression_rate,
+	                            double        *time_segmerge,
+	                            double        *gflops_segmerge )
+{
+    printf("\n[Baseline: cuSPARSE SpGEMM]\n");
+    int ret = spgemm_cusparse_device_compare(mA, nA, nnzA, csrRowPtrA, csrColIdxA, csrValA,
+                 mB, nB, nnzB, csrRowPtrB, csrColIdxB, csrValB,
+                 mC, nC, nnzC_golden, d_csrRowPtrC_golden, d_csrColIdxC_golden, d_csrValC_golden,
+                 check_result, nnzCub, nnzC, compression_rate, time_segmerge, gflops_segmerge);
     return ret;
 }
-
 
 
 

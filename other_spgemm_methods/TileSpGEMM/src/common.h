@@ -12,7 +12,15 @@
 #include <omp.h>
 
 #include <sys/time.h>
+#if defined(__CUDACC__)
+#include <cuda_runtime.h>
+#include <cuda_fp16.h>
+#ifndef cudaThreadSynchronize
+#define cudaThreadSynchronize cudaDeviceSynchronize
+#endif
+#else
 #include "cuda_fp16.h"
+#endif
 
 #include "utils.h"
 

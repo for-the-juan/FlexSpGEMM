@@ -5,6 +5,7 @@
 #include "utils.h"
 #include <cuda_runtime.h>
 #include <cusparse.h>
+#include <type_traits>
 
 //#include "utils_cuda_sort.h"
 //#include "utils_cuda_spgemm_subfunc.h"
@@ -36,12 +37,12 @@ int spgemm_cusparse_executor(cusparseHandle_t handle, cusparseSpMatDescr_t matA,
 {
     cusparseOperation_t opA = CUSPARSE_OPERATION_NON_TRANSPOSE;
     cusparseOperation_t opB = CUSPARSE_OPERATION_NON_TRANSPOSE;
-    cudaDataType computeType = CUDA_R_32F;
+    cudaDataType computeType = std::is_same<VALUE_TYPE, double>::value ? CUDA_R_64F : CUDA_R_32F;
     void *dBuffer1 = NULL, *dBuffer2 = NULL;
     size_t bufferSize1 = 0, bufferSize2 = 0;
 
-    float alpha = 1.0f;
-    float beta = 0.0f;
+    VALUE_TYPE alpha = static_cast<VALUE_TYPE>(1.0);
+    VALUE_TYPE beta = static_cast<VALUE_TYPE>(0.0);
 
     cudaMalloc((void **)d_csrRowPtrC, (mC + 1) * sizeof(int));
 
@@ -158,19 +159,20 @@ int spgemm_cusparse(const int mA,
     cusparseSpMatDescr_t matA, matB, matC;
 
     cusparseCreate(&handle);
+    cudaDataType valueType = std::is_same<VALUE_TYPE, double>::value ? CUDA_R_64F : CUDA_R_32F;
     // Create sparse matrix A in CSR format
     cusparseCreateCsr(&matA, mA, nA, nnzA,
                       d_csrRowPtrA, d_csrColIdxA, d_csrValA,
                       CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,
-                      CUSPARSE_INDEX_BASE_ZERO, CUDA_R_32F);
+                      CUSPARSE_INDEX_BASE_ZERO, valueType);
     cusparseCreateCsr(&matB, mB, nB, nnzB,
                       d_csrRowPtrB, d_csrColIdxB, d_csrValB,
                       CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,
-                      CUSPARSE_INDEX_BASE_ZERO, CUDA_R_32F);
+                      CUSPARSE_INDEX_BASE_ZERO, valueType);
     cusparseCreateCsr(&matC, mA, nB, 0,
                       NULL, NULL, NULL,
                       CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,
-                      CUSPARSE_INDEX_BASE_ZERO, CUDA_R_32F);
+                      CUSPARSE_INDEX_BASE_ZERO, valueType);
     //--------------------------------------------------------------------------
 
     //  - cuda SpGEMM start!

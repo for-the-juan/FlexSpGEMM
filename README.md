@@ -31,6 +31,23 @@ python transpose_mtx.py
 ```
 We only need test matrices for quick evaluation and reproduction.
 
+### Run FlexSpGEMM directly
+From the repository root, compile the GPU executable:
+```bash
+make -C src OPTIONS='-D CHECK_RESULT=1'
+```
+On an RTX 5090 environment, pass the Blackwell target explicitly:
+```bash
+make -C src NVCC_ARCH='-arch=sm_120' OPTIONS='-D CHECK_RESULT=1'
+```
+
+Run one matrix:
+```bash
+src/test -d 0 -aat 0 -tau 0.7 -csr2tile gpu data/test/bundle1.mtx
+```
+
+The `-csr2tile` option selects the preprocessing backend (`gpu` by default, or `cpu`). Set `CHECK_RESULT=1` to compare the FlexSpGEMM output with cuSPARSE; set `CHECK_RESULT=0` for timing-only runs.
+
 ### Step2: Predict tile shape and tau with LightGBM, LLM and SVM and run FlexSpGEMM
 For this step, we also need FlexSpGEMM environment.
 Firstly, please get the data features by the command below:
@@ -116,4 +133,4 @@ The [**Correctness Validation**] part prints the correctness validation results 
 The \[**Speedup**\] part prints the speedup of FlexSpGEMM over the cuSPARSE baseline, computed as the ratio of their total runtimes.
 
 ## Release version
-Apr 6,2026 Version Alpha
+Jul 4, 2026 Version Alpha

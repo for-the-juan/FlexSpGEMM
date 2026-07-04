@@ -2,12 +2,14 @@
 # Compile_TC.sh - 编译81个二进制文件（9 tile × 9 TC阈值）
 
 CC="nvcc"
-VALUE_TYPE="double"
+MAT_VAL_TYPE="${MAT_VAL_TYPE:-double}"
+VALUE_TYPE="${VALUE_TYPE:-${MAT_VAL_TYPE}}"
 NVCC_FLAGS="-O3 -w -arch=compute_80 -code=sm_80 -gencode=arch=compute_80,code=sm_80 -std=c++17"
 CUDA_INSTALL_PATH="/usr/local/cuda-11.8"
 INCLUDES="-I${CUDA_INSTALL_PATH}/include"
 CUDA_LIBS="-L${CUDA_INSTALL_PATH}/lib64 -lcudart -lcusparse"
 LIBS=${CUDA_LIBS}
+TYPE_OPTIONS="-D MAT_VAL_TYPE=${MAT_VAL_TYPE} -D VALUE_TYPE=${VALUE_TYPE}"
 
 TILE_SIZE_M=(8 16 32)
 TILE_SIZE_N=(8 16 32)
@@ -31,7 +33,7 @@ for i in ${TILE_SIZE_M[@]}; do
             OUTNAME="../bin_tc/test_m${i}_n${j}_tc${frac}"
             ${CC} ${NVCC_FLAGS} -Xcompiler -fopenmp -Xcompiler -mfma main.cu \
                 -o ${OUTNAME} ${INCLUDES} ${LIBS} ${OPTIONS} \
-                -D VALUE_TYPE=${VALUE_TYPE} \
+                ${TYPE_OPTIONS} \
                 -D TILE_SIZE_M=${i} \
                 -D TILE_SIZE_N=${j} \
                 -D SMEM_LRG_TH=${smem_lrg_th} \

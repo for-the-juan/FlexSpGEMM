@@ -10,12 +10,21 @@
 #include <x86intrin.h>
 #include <immintrin.h>
 #include <nmmintrin.h>
+#include <type_traits>
 
 
 #include <omp.h>
 
 #include <sys/time.h>
+#if defined(__CUDACC__)
+#include <cuda_runtime.h>
+#include <cuda_fp16.h>
+#ifndef cudaThreadSynchronize
+#define cudaThreadSynchronize cudaDeviceSynchronize
+#endif
+#else
 #include "cuda_fp16.h"
+#endif
 
 #include "utils.h"
 
@@ -23,9 +32,41 @@
 #define MAT_VAL_TYPE double
 #endif
 
+#ifndef VALUE_TYPE
+#define VALUE_TYPE MAT_VAL_TYPE
+#endif
+
 #ifndef MAT_PTR_TYPE
 #define MAT_PTR_TYPE int
 #endif
+
+#define FLEX_TOKEN_CAT_(a, b) a##b
+#define FLEX_TOKEN_CAT(a, b) FLEX_TOKEN_CAT_(a, b)
+#define FLEX_IS_HALF_TYPE_half 1
+#define FLEX_IS_HALF_TYPE___half 1
+
+#ifndef FLEX_VALUE_HALF
+#define FLEX_VALUE_HALF FLEX_TOKEN_CAT(FLEX_IS_HALF_TYPE_, MAT_VAL_TYPE)
+#endif
+
+#ifndef FLEX_USE_FP64_WMMA
+#if FLEX_VALUE_HALF
+#define FLEX_USE_FP64_WMMA 0
+#else
+#define FLEX_USE_FP64_WMMA 1
+#endif
+#endif
+
+#ifndef FLEX_USE_FP16_WMMA
+#if FLEX_VALUE_HALF
+#define FLEX_USE_FP16_WMMA 1
+#else
+#define FLEX_USE_FP16_WMMA 0
+#endif
+#endif
+
+static_assert(std::is_same<MAT_VAL_TYPE, VALUE_TYPE>::value,
+              "MAT_VAL_TYPE and VALUE_TYPE must match for FlexSpGEMM.");
 
 // e.g., nvcc -DTILE_SIZE_M=64 ...
 #ifndef TILE_SIZE_M
@@ -41,6 +82,16 @@
 #define WMMA_N 8
 #define WMMA_K 4
 
+#define FP16_WMMA_M 16
+#define FP16_WMMA_N 16
+#define FP16_WMMA_K 16
+
+#if FLEX_USE_FP16_WMMA && (TILE_SIZE_M == 16 || TILE_SIZE_M == 32) && (TILE_SIZE_N == 16 || TILE_SIZE_N == 32)
+#define FLEX_FP16_WMMA_SUPPORTED 1
+#else
+#define FLEX_FP16_WMMA_SUPPORTED 0
+#endif
+
 #define QUADWARP_SIZE 8
 #define HALFWARP_SIZE 16
 #define WARP_SIZE 32
@@ -50,7 +101,9 @@
 #define WARP_PER_BLOCK 4
 
 #define USE_HALFWARP 1
-#define USE_TENSORCORE 1
+#ifndef USE_TENSORCORE
+#define USE_TENSORCORE (FLEX_USE_FP64_WMMA || FLEX_FP16_WMMA_SUPPORTED)
+#endif
 #define USE_COOPERATION 1
 
 #define TILE_PER_WARP 16
@@ -110,7 +163,7 @@
 #endif
 
 #ifndef CHECK_RESULT
-#define CHECK_RESULT 0
+#define CHECK_RESULT 1
 #endif
 
 #define HASH_SCALE 107
@@ -189,7 +242,7 @@ typedef uint32_t INTERSEC_BITMASK_TYPE;
 #endif
 
 #ifndef ENABLE_MULTI_WARP_SHARED_SLOT
-#define ENABLE_MULTI_WARP_SHARED_SLOT 1
+#define ENABLE_MULTI_WARP_SHARED_SLOT FLEX_USE_FP64_WMMA
 #endif
 
 #ifndef NUM_SHARED_SLOTS
@@ -243,6 +296,16 @@ typedef struct
     MAT_VAL_TYPE *dense_data;
     int *tile_dense_ready;   // Use dense or not
     int dense_tile_count;        // dense tile number
+    int device_tile_ready;
+    int *d_tile_ptr;
+    int *d_tile_columnidx;
+    int *d_tile_nnz;
+    MAT_VAL_TYPE *d_tile_csr_Value;
+    TILE_CSR_COL_TYPE_A *d_tile_csr_Col;
+    TILE_CSR_PTR_TYPE *d_tile_csr_Ptr;
+    TILE_MASK_TYPE_A *d_mask;
+    MAT_VAL_TYPE *d_dense_data;
+    int *d_tile_dense_ready;
 }SMatrixA;
 
 // Matrix C also uses SMatrixB, since they share the same TILE_CSR_COL_TYPE and TILE_MASK_TYPE
@@ -271,5 +334,20 @@ typedef struct
     MAT_VAL_TYPE *dense_data;
     int *tile_dense_ready;   // Use dense or not
     int dense_tile_count;        // dense tile number
+    int device_tile_ready;
+    int *d_tile_ptr;
+    int *d_tile_columnidx;
+    int *d_csc_tile_ptr;
+    int *d_csc_tile_rowidx;
+    int *d_tile_nnz;
+    MAT_VAL_TYPE *d_tile_csr_Value;
+    TILE_CSR_COL_TYPE_B *d_tile_csr_Col;
+    TILE_CSR_PTR_TYPE *d_tile_csr_Ptr;
+    TILE_MASK_TYPE_B *d_mask;
+    MAT_VAL_TYPE *d_dense_data;
+    int *d_tile_dense_ready;
+    MAT_PTR_TYPE *d_rowpointer;
+    int *d_columnindex;
+    MAT_VAL_TYPE *d_value;
 }SMatrixB;
 #endif
