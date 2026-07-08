@@ -4018,6 +4018,18 @@ void tilespgemm(SMatrixA *matrixA,
     }
 
     double time_all[REPEAT_NUM];
+    int numblkC_all[REPEAT_NUM] = {0};
+    int nnzC_all[REPEAT_NUM] = {0};
+    int blksmem_tny_cnt_all[REPEAT_NUM] = {0};
+    int blksmem_sml_cnt_all[REPEAT_NUM] = {0};
+    int blksmem_lrg_cnt_all[REPEAT_NUM] = {0};
+    int blksmem_dns_cnt_all[REPEAT_NUM] = {0};
+    int blksmem_ful_cnt_all[REPEAT_NUM] = {0};
+#if TIMING
+    double time_symbolic_all[REPEAT_NUM] = {0.0};
+    double time_numeric_all[REPEAT_NUM] = {0.0};
+    double time_malloc_all[REPEAT_NUM] = {0.0};
+#endif
 
     int *d_blksmem_tny_cnt;
     int *d_blksmem_sml_cnt;
@@ -4269,13 +4281,6 @@ void tilespgemm(SMatrixA *matrixA,
         cudaDeviceSynchronize();
         gettimeofday(&t2, NULL);
         *time_symbolic += (t2.tv_sec - t1.tv_sec) * 1000.0 + (t2.tv_usec - t1.tv_usec) / 1000.0;
-        if (ri == 0)
-        {
-            printf("\n[Symbolic Stage]\n");
-            printf("  Runtime                  : %.2f ms\n", *time_symbolic);
-            printf("\n");
-            printf("--------------------------------------------------------------------------------\n");
-        }
 #endif
 
 #if TIMING
@@ -4298,6 +4303,11 @@ void tilespgemm(SMatrixA *matrixA,
         cudaMemcpy(&blksmem_lrg_cnt, d_blksmem_lrg_cnt, sizeof(int), cudaMemcpyDeviceToHost);
         cudaMemcpy(&blksmem_dns_cnt, d_blksmem_dns_cnt, sizeof(int), cudaMemcpyDeviceToHost);
         cudaMemcpy(&blksmem_ful_cnt, d_blksmem_ful_cnt, sizeof(int), cudaMemcpyDeviceToHost);
+        blksmem_tny_cnt_all[ri] = blksmem_tny_cnt;
+        blksmem_sml_cnt_all[ri] = blksmem_sml_cnt;
+        blksmem_lrg_cnt_all[ri] = blksmem_lrg_cnt;
+        blksmem_dns_cnt_all[ri] = blksmem_dns_cnt;
+        blksmem_ful_cnt_all[ri] = blksmem_ful_cnt;
 
 #if TIMING
         gettimeofday(&t2, NULL);
@@ -4309,24 +4319,6 @@ void tilespgemm(SMatrixA *matrixA,
     const int THREADS_USED_SML = THREADS_USED_SML_TH < 32 ? THREADS_USED_SML_TH : 32;
     const int THREADS_USED_LRG = THREADS_USED_LRG_TH < 32 ? THREADS_USED_LRG_TH : 32;
     const int THREADS_USED_DNS = THREADS_USED_DNS_TH < 32 ? THREADS_USED_DNS_TH : 32;
-    
-    printf("\n  Output Tile Classification:\n");
-    printf("  %-10s  %10s  %12s  %10s\n",
-           "Type", "Count", "Threshold", "Threads");
-    printf("  %-10s  %10s  %12s  %10s\n",
-           "----------", "----------", "------------", "----------");
-    printf("  %-10s  %10d  %12d  %10d\n",
-           "Tiny",  blksmem_tny_cnt, SMEM_TNY_TH, THREADS_USED_TNY);
-    printf("  %-10s  %10d  %12d  %10d\n",
-           "Small", blksmem_sml_cnt, SMEM_SML_TH, THREADS_USED_SML);
-    printf("  %-10s  %10d  %12d  %10d\n",
-           "Large", blksmem_lrg_cnt, tc_threshold, THREADS_USED_LRG);
-    printf("  %-10s  %10d  %12d  %10d\n",
-           "Dense", blksmem_dns_cnt, SMEM_DNS_TH, THREADS_USED_DNS);
-    printf("  %-10s  %10d  %12d  %10d\n",
-           "Full",  blksmem_ful_cnt, TILE_SIZE_M * TILE_SIZE_M, 32);
-    printf("\n");
-    printf("--------------------------------------------------------------------------------\n");
 
 #if TIMING
         gettimeofday(&t1, NULL);
@@ -4533,17 +4525,6 @@ void tilespgemm(SMatrixA *matrixA,
         cudaDeviceSynchronize();
         gettimeofday(&t2, NULL);
         *time_numeric = (t2.tv_sec - t1.tv_sec) * 1000.0 + (t2.tv_usec - t1.tv_usec) / 1000.0;
-        if (ri == 0)
-        {
-            printf("\n[Numeric Stage]\n");
-            printf("  Runtime                  : %.2f ms\n", *time_numeric);
-            printf("\n");
-            printf("--------------------------------------------------------------------------------\n");
-            printf("\n[Malloc]\n");
-            printf("  Memory Allocation        : %.2f ms\n", *time_malloc);
-            printf("\n");
-            printf("--------------------------------------------------------------------------------\n");
-        }
 
 #endif
 
@@ -4552,6 +4533,13 @@ void tilespgemm(SMatrixA *matrixA,
         double time = (tend.tv_sec - tstart.tv_sec) * 1000.0 + (tend.tv_usec - tstart.tv_usec) / 1000.0;
         time_all[ri] = time;
         tile_spgemm_time += time;
+        numblkC_all[ri] = numblkC;
+        nnzC_all[ri] = nnzC;
+#if TIMING
+        time_symbolic_all[ri] = *time_symbolic;
+        time_numeric_all[ri] = *time_numeric;
+        time_malloc_all[ri] = *time_malloc;
+#endif
 
 #if CHECK_RESULT
 	        matrixC->numtile = numblkC;
@@ -4598,15 +4586,75 @@ void tilespgemm(SMatrixA *matrixA,
         }
     }
 
-    double time_min = time_all[0];
-    for (int ri = 1; ri < REPEAT_NUM; ri++)
-        time_min = time_min > time_all[ri] ? time_all[ri] : time_min;
+    int time_order[REPEAT_NUM];
+    for (int ri = 0; ri < REPEAT_NUM; ri++)
+    {
+        time_order[ri] = ri;
+    }
+    for (int i = 1; i < REPEAT_NUM; i++)
+    {
+        int key = time_order[i];
+        int j = i - 1;
+        while (j >= 0 && time_all[time_order[j]] > time_all[key])
+        {
+            time_order[j + 1] = time_order[j];
+            j--;
+        }
+        time_order[j + 1] = key;
+    }
+    const int selected_ri = time_order[REPEAT_NUM / 2];
 
+    numblkC = numblkC_all[selected_ri];
+    nnzC = nnzC_all[selected_ri];
     *nnzC_computed = nnzC;
     *compression_rate = (double)nnzCub / (double)(*nnzC_computed);
-    tile_spgemm_time = time_min;
+    tile_spgemm_time = time_all[selected_ri];
     *time_tile = tile_spgemm_time;
     *gflops_tile = 2.0 * (double)nnzCub / (tile_spgemm_time * 1e6);
+
+#if TIMING
+    *time_symbolic = time_symbolic_all[selected_ri];
+    *time_numeric = time_numeric_all[selected_ri];
+    *time_malloc = time_malloc_all[selected_ri];
+
+    printf("\n[Symbolic Stage]\n");
+    printf("  Runtime                  : %.2f ms\n", *time_symbolic);
+    printf("\n");
+    printf("--------------------------------------------------------------------------------\n");
+#endif
+
+    const int THREADS_USED_TNY_OUT = THREADS_USED_TNY_TH < 32 ? THREADS_USED_TNY_TH : 32;
+    const int THREADS_USED_SML_OUT = THREADS_USED_SML_TH < 32 ? THREADS_USED_SML_TH : 32;
+    const int THREADS_USED_LRG_OUT = THREADS_USED_LRG_TH < 32 ? THREADS_USED_LRG_TH : 32;
+    const int THREADS_USED_DNS_OUT = THREADS_USED_DNS_TH < 32 ? THREADS_USED_DNS_TH : 32;
+    printf("\n  Output Tile Classification:\n");
+    printf("  %-10s  %10s  %12s  %10s\n",
+           "Type", "Count", "Threshold", "Threads");
+    printf("  %-10s  %10s  %12s  %10s\n",
+           "----------", "----------", "------------", "----------");
+    printf("  %-10s  %10d  %12d  %10d\n",
+           "Tiny",  blksmem_tny_cnt_all[selected_ri], SMEM_TNY_TH, THREADS_USED_TNY_OUT);
+    printf("  %-10s  %10d  %12d  %10d\n",
+           "Small", blksmem_sml_cnt_all[selected_ri], SMEM_SML_TH, THREADS_USED_SML_OUT);
+    printf("  %-10s  %10d  %12d  %10d\n",
+           "Large", blksmem_lrg_cnt_all[selected_ri], tc_threshold, THREADS_USED_LRG_OUT);
+    printf("  %-10s  %10d  %12d  %10d\n",
+           "Dense", blksmem_dns_cnt_all[selected_ri], SMEM_DNS_TH, THREADS_USED_DNS_OUT);
+    printf("  %-10s  %10d  %12d  %10d\n",
+           "Full",  blksmem_ful_cnt_all[selected_ri], TILE_SIZE_M * TILE_SIZE_M, 32);
+    printf("\n");
+    printf("--------------------------------------------------------------------------------\n");
+
+#if TIMING
+    printf("\n[Numeric Stage]\n");
+    printf("  Runtime                  : %.2f ms\n", *time_numeric);
+    printf("\n");
+    printf("--------------------------------------------------------------------------------\n");
+    printf("\n[Malloc]\n");
+    printf("  Memory Allocation        : %.2f ms\n", *time_malloc);
+    printf("\n");
+    printf("--------------------------------------------------------------------------------\n");
+#endif
 
     printf("\n[FlexSpGEMM Summary]\n");
     printf("  Non-empty Output Tiles   : %d\n",   numblkC);

@@ -5,15 +5,159 @@
 
 #include <cuda_runtime.h>
 
+#include <cctype>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <algorithm>
+#include <filesystem>
+#include <fstream>
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <regex>
 #include <vector>
 
 namespace {
+
+struct BatchSpec {
+    std::string matrix_name;
+    std::string matrix_path;
+    int tile_m;
+    int tile_n;
+};
+
+std::string trim_whitespace(std::string_view value) {
+    size_t start = 0;
+    while (start < value.size() && std::isspace(static_cast<unsigned char>(value[start]))) {
+        ++start;
+    }
+    size_t end = value.size();
+    while (end > start && std::isspace(static_cast<unsigned char>(value[end - 1]))) {
+        --end;
+    }
+    std::string result(value.substr(start, end - start));
+    if (result.size() >= 2 && result.front() == '\"' && result.back() == '\"') {
+        result = result.substr(1, result.size() - 2);
+    }
+    return result;
+}
+
+std::vector<std::string> split_csv_row(const std::string &line) {
+    std::vector<std::string> columns;
+    std::string current;
+    bool in_quotes = false;
+    for (size_t i = 0; i < line.size(); ++i) {
+        const char ch = line[i];
+        if (ch == '\"') {
+            in_quotes = !in_quotes;
+            current.push_back(ch);
+            continue;
+        }
+        if (ch == ',' && !in_quotes) {
+            columns.push_back(trim_whitespace(current));
+            current.clear();
+            continue;
+        }
+        current.push_back(ch);
+    }
+    columns.push_back(trim_whitespace(current));
+    return columns;
+}
+
+bool parse_tile_from_log_path(const std::string &path, int &tile_m, int &tile_n) {
+    static const std::regex kLogTileRegex(R"((?:/|^)m(\d+)_n(\d+)_tc)");
+    std::smatch match;
+    if (!std::regex_search(path, match, kLogTileRegex)) {
+        return false;
+    }
+    tile_m = std::stoi(match[1].str());
+    tile_n = std::stoi(match[2].str());
+    return true;
+}
+
+bool parse_tile_from_combo(const std::string &combo, int &tile_m, int &tile_n) {
+    static const std::regex kComboTileRegex(R"(^\s*(\d+)\s*x\s*(\d+)\s*_)");
+    std::smatch match;
+    if (!std::regex_search(combo, match, kComboTileRegex)) {
+        return false;
+    }
+    tile_m = std::stoi(match[1].str());
+    tile_n = std::stoi(match[2].str());
+    return true;
+}
+
+std::vector<BatchSpec> load_batch_specs(const std::string &csv_path, const std::string &matrix_dir) {
+    std::ifstream file(csv_path);
+    if (!file.is_open()) {
+        throw std::runtime_error("failed to open batch spec file: " + csv_path);
+    }
+
+    std::string line;
+    if (!std::getline(file, line)) {
+        throw std::runtime_error("batch spec file is empty: " + csv_path);
+    }
+    const auto header = split_csv_row(line);
+    size_t matrix_name_idx = header.size();
+    size_t combo_idx = header.size();
+    size_t log_path_idx = header.size();
+    for (size_t i = 0; i < header.size(); ++i) {
+        if (header[i] == "Matrix Name") {
+            matrix_name_idx = i;
+        } else if (header[i] == "FlexSpGEMM Combo") {
+            combo_idx = i;
+        } else if (header[i] == "FlexSpGEMM Log Path") {
+            log_path_idx = i;
+        }
+    }
+    if (matrix_name_idx == header.size()) {
+        throw std::runtime_error("batch spec missing required column: Matrix Name");
+    }
+    if (combo_idx == header.size() && log_path_idx == header.size()) {
+        throw std::runtime_error("batch spec must include FlexSpGEMM Combo and/or FlexSpGEMM Log Path");
+    }
+
+    std::vector<BatchSpec> specs;
+    size_t row_idx = 1;
+    while (std::getline(file, line)) {
+        const auto columns = split_csv_row(line);
+        if (columns.empty() || columns[0].empty()) {
+            ++row_idx;
+            continue;
+        }
+        if (matrix_name_idx >= columns.size()) {
+            throw std::runtime_error("missing Matrix Name at batch spec row " + std::to_string(row_idx));
+        }
+        const std::string matrix_name = columns[matrix_name_idx];
+        if (matrix_name.empty()) {
+            ++row_idx;
+            continue;
+        }
+
+        int tile_m = 0;
+        int tile_n = 0;
+        bool parsed = false;
+        if (log_path_idx < columns.size()) {
+            parsed = parse_tile_from_log_path(columns[log_path_idx], tile_m, tile_n);
+        }
+        if (!parsed && combo_idx < columns.size()) {
+            parsed = parse_tile_from_combo(columns[combo_idx], tile_m, tile_n);
+        }
+        if (!parsed) {
+            throw std::runtime_error("cannot parse tile sizes for matrix " + matrix_name +
+                                     " at batch spec row " + std::to_string(row_idx));
+        }
+        std::filesystem::path mtx_path(matrix_dir);
+        mtx_path /= (matrix_name + ".mtx");
+        specs.push_back({matrix_name, mtx_path.string(), tile_m, tile_n});
+        ++row_idx;
+    }
+
+    if (specs.empty()) {
+        throw std::runtime_error("batch spec did not produce any valid entries: " + csv_path);
+    }
+    return specs;
+}
 
 std::string cuda_error_string(cudaError_t err, const char *expr, const char *file, int line) {
     std::ostringstream os;
@@ -288,7 +432,9 @@ int run_matrix(const std::string &path,
                double tau,
                bool timing_only,
                bool gpu_only,
-               bool device_output) {
+               bool device_output,
+               int repeat,
+               bool profile_stages) {
     bench::Timer load_timer;
     bench::CsrMatrix matrix = bench::load_matrix_market(path);
     const double load_ms = load_timer.elapsed_ms();
@@ -310,12 +456,98 @@ int run_matrix(const std::string &path,
     bool gpu_b_ready = false;
     bool cpu_b_owns_csr = false;
     bool gpu_b_owns_csr = false;
+    if (repeat <= 0) {
+        repeat = 1;
+    }
 
     double cpu_a_ms = 0.0;
     double gpu_a_ms = 0.0;
     double gpu_b_ms = 0.0;
+    double gpu_a_min_ms = 0.0;
+    double gpu_a_max_ms = 0.0;
+    double gpu_a_avg_ms = 0.0;
+    double gpu_b_min_ms = 0.0;
+    double gpu_b_max_ms = 0.0;
+    double gpu_b_avg_ms = 0.0;
+    double h2d_a_ms = 0.0;
+    double h2d_b_ms = 0.0;
     unsigned long long nnzCub = 0;
     int failures = 0;
+
+    auto median_ms = [](std::vector<double> values) {
+        if (values.empty()) {
+            return 0.0;
+        }
+        std::sort(values.begin(), values.end());
+        const size_t mid = values.size() / 2;
+        if ((values.size() & 1u) == 1u) {
+            return values[mid];
+        }
+        return 0.5 * (values[mid - 1] + values[mid]);
+    };
+
+    auto summarize_ms = [&](const std::vector<double> &vals, double &min_ms, double &max_ms, double &avg_ms) {
+        if (vals.empty()) {
+            min_ms = 0.0;
+            max_ms = 0.0;
+            avg_ms = 0.0;
+            return 0.0;
+        }
+        auto minmax = std::minmax_element(vals.begin(), vals.end());
+        min_ms = *minmax.first;
+        max_ms = *minmax.second;
+        double sum = 0.0;
+        for (double v : vals) {
+            sum += v;
+        }
+        avg_ms = sum / static_cast<double>(vals.size());
+        return median_ms(vals);
+    };
+
+    using StageTimes = gpu_csr2tile::Csr2TileStageTimes;
+    auto median_stage_field = [&](const std::vector<StageTimes> &vals, double StageTimes::*field) {
+        std::vector<double> samples;
+        samples.reserve(vals.size());
+        for (const auto &v : vals) {
+            samples.push_back(v.*field);
+        }
+        return median_ms(samples);
+    };
+    auto summarize_stage = [&](const std::vector<StageTimes> &vals) {
+        StageTimes out;
+        if (vals.empty()) {
+            return out;
+        }
+        out.h2d_ms = median_stage_field(vals, &StageTimes::h2d_ms);
+        out.row_structure_ms = median_stage_field(vals, &StageTimes::row_structure_ms);
+        out.fill_entry_keys_ms = median_stage_field(vals, &StageTimes::fill_entry_keys_ms);
+        out.sort_by_key_ms = median_stage_field(vals, &StageTimes::sort_by_key_ms);
+        out.reduce_by_key_ms = median_stage_field(vals, &StageTimes::reduce_by_key_ms);
+        out.tile_index_ms = median_stage_field(vals, &StageTimes::tile_index_ms);
+        out.tile_csr_ptr_ms = median_stage_field(vals, &StageTimes::tile_csr_ptr_ms);
+        out.write_entries_ms = median_stage_field(vals, &StageTimes::write_entries_ms);
+        out.dense_flags_ms = median_stage_field(vals, &StageTimes::dense_flags_ms);
+        out.mask_dense_ms = median_stage_field(vals, &StageTimes::mask_dense_ms);
+        out.narrow_mask_ms = median_stage_field(vals, &StageTimes::narrow_mask_ms);
+        out.d2d_output_copy_ms = median_stage_field(vals, &StageTimes::d2d_output_copy_ms);
+        out.build_total_ms = median_stage_field(vals, &StageTimes::build_total_ms);
+        return out;
+    };
+
+    auto build_gpu_inputs = [&]() {
+        if (gpu_a_ready) {
+            free_smatrix_a(&gpu_a);
+            gpu_a_ready = false;
+        }
+        if (gpu_b_ready) {
+            free_smatrix_b(&gpu_b, gpu_b_owns_csr);
+            gpu_b_ready = false;
+        }
+        fill_smatrix_a(matrix, &gpu_a);
+        gpu_a_ready = true;
+        fill_smatrix_b_from_a(&gpu_a, &gpu_b, aat != 0, &gpu_b_owns_csr);
+        gpu_b_ready = true;
+    };
 
     try {
         if (!gpu_only) {
@@ -334,29 +566,64 @@ int run_matrix(const std::string &path,
             }
         }
 
-        fill_smatrix_a(matrix, &gpu_a);
-        gpu_a_ready = true;
-        fill_smatrix_b_from_a(&gpu_a, &gpu_b, aat != 0, &gpu_b_owns_csr);
-        gpu_b_ready = true;
+        build_gpu_inputs();
         if (gpu_only) {
             nnzCub = compute_nnz_upper_bound(gpu_a, gpu_b);
         }
 
-        bench::Timer gpu_a_timer;
-        if (device_output) {
-            gpu_csr2tile::gpu_csr2tile_row_major_device(&gpu_a, tile_m, tile_n);
-        } else {
-            gpu_csr2tile::gpu_csr2tile_row_major(&gpu_a, tile_m, tile_n);
-        }
-        gpu_a_ms = gpu_a_timer.elapsed_ms();
+        std::vector<double> gpu_a_samples;
+        std::vector<double> gpu_b_samples;
+        std::vector<StageTimes> gpu_a_stage_samples;
+        std::vector<StageTimes> gpu_b_stage_samples;
+        gpu_a_samples.reserve(static_cast<size_t>(repeat));
+        gpu_b_samples.reserve(static_cast<size_t>(repeat));
+        gpu_a_stage_samples.reserve(static_cast<size_t>(repeat));
+        gpu_b_stage_samples.reserve(static_cast<size_t>(repeat));
+        for (int repeat_i = 0; repeat_i < repeat; ++repeat_i) {
+            if (repeat_i > 0) {
+                build_gpu_inputs();
+            }
 
-        bench::Timer gpu_b_timer;
-        if (device_output) {
-            gpu_csr2tile::gpu_csr2tile_col_major_device(&gpu_b, tile_m, tile_n);
-        } else {
-            gpu_csr2tile::gpu_csr2tile_col_major(&gpu_b, tile_m, tile_n);
+            StageTimes gpu_a_stage;
+            bench::Timer gpu_a_timer;
+            if (device_output) {
+                gpu_csr2tile::gpu_csr2tile_row_major_device(
+                    &gpu_a, tile_m, tile_n, &h2d_a_ms, profile_stages ? &gpu_a_stage : nullptr);
+            } else {
+                gpu_csr2tile::gpu_csr2tile_row_major(&gpu_a, tile_m, tile_n, &h2d_a_ms);
+            }
+            CUDA_CHECK(cudaDeviceSynchronize());
+            gpu_a_ms = gpu_a_timer.elapsed_ms() - h2d_a_ms;
+            if (gpu_a_ms < 0.0) {
+                gpu_a_ms = 0.0;
+            }
+            gpu_a_samples.push_back(gpu_a_ms);
+            if (profile_stages && device_output) {
+                gpu_a_stage_samples.push_back(gpu_a_stage);
+            }
+
+            StageTimes gpu_b_stage;
+            bench::Timer gpu_b_timer;
+            if (device_output) {
+                gpu_csr2tile::gpu_csr2tile_col_major_device(
+                    &gpu_b, tile_m, tile_n, &h2d_b_ms, profile_stages ? &gpu_b_stage : nullptr);
+            } else {
+                gpu_csr2tile::gpu_csr2tile_col_major(&gpu_b, tile_m, tile_n, &h2d_b_ms);
+            }
+            CUDA_CHECK(cudaDeviceSynchronize());
+            gpu_b_ms = gpu_b_timer.elapsed_ms() - h2d_b_ms;
+            if (gpu_b_ms < 0.0) {
+                gpu_b_ms = 0.0;
+            }
+            gpu_b_samples.push_back(gpu_b_ms);
+            if (profile_stages && device_output) {
+                gpu_b_stage_samples.push_back(gpu_b_stage);
+            }
         }
-        gpu_b_ms = gpu_b_timer.elapsed_ms();
+        gpu_a_ms = summarize_ms(gpu_a_samples, gpu_a_min_ms, gpu_a_max_ms, gpu_a_avg_ms);
+        gpu_b_ms = summarize_ms(gpu_b_samples, gpu_b_min_ms, gpu_b_max_ms, gpu_b_avg_ms);
+        const StageTimes gpu_a_stage = summarize_stage(gpu_a_stage_samples);
+        const StageTimes gpu_b_stage = summarize_stage(gpu_b_stage_samples);
 
         if (timing_only) {
             std::cout << bench::basename(path)
@@ -375,7 +642,43 @@ int run_matrix(const std::string &path,
             }
             std::cout << ", gpu_ms=" << gpu_a_ms
                       << ", gpu_b_ms=" << gpu_b_ms
-                      << ", cpu_over_gpu=";
+                      << ", gpu_ms_min=" << gpu_a_min_ms
+                      << ", gpu_ms_max=" << gpu_a_max_ms
+                      << ", gpu_ms_avg=" << gpu_a_avg_ms
+                      << ", gpu_b_ms_median=" << gpu_b_ms
+                      << ", gpu_b_ms_min=" << gpu_b_min_ms
+                      << ", gpu_b_ms_max=" << gpu_b_max_ms
+                      << ", gpu_b_ms_avg=" << gpu_b_avg_ms
+                      << ", repeat=" << repeat
+                      << ", profile_stages=" << (profile_stages && device_output ? 1 : 0);
+            if (profile_stages && device_output) {
+                std::cout << ", gpu_h2d_ms_median=" << gpu_a_stage.h2d_ms
+                          << ", gpu_stage_build_total_ms=" << gpu_a_stage.build_total_ms
+                          << ", gpu_stage_fill_entry_keys_ms=" << gpu_a_stage.fill_entry_keys_ms
+                          << ", gpu_stage_sort_by_key_ms=" << gpu_a_stage.sort_by_key_ms
+                          << ", gpu_stage_reduce_by_key_ms=" << gpu_a_stage.reduce_by_key_ms
+                          << ", gpu_stage_tile_index_ms=" << gpu_a_stage.tile_index_ms
+                          << ", gpu_stage_tile_csr_ptr_ms=" << gpu_a_stage.tile_csr_ptr_ms
+                          << ", gpu_stage_write_entries_ms=" << gpu_a_stage.write_entries_ms
+                          << ", gpu_stage_dense_flags_ms=" << gpu_a_stage.dense_flags_ms
+                          << ", gpu_stage_mask_dense_ms=" << gpu_a_stage.mask_dense_ms
+                          << ", gpu_stage_narrow_mask_ms=" << gpu_a_stage.narrow_mask_ms
+                          << ", gpu_stage_d2d_output_copy_ms=" << gpu_a_stage.d2d_output_copy_ms
+                          << ", gpu_b_h2d_ms_median=" << gpu_b_stage.h2d_ms
+                          << ", gpu_b_stage_row_structure_ms=" << gpu_b_stage.row_structure_ms
+                          << ", gpu_b_stage_build_total_ms=" << gpu_b_stage.build_total_ms
+                          << ", gpu_b_stage_fill_entry_keys_ms=" << gpu_b_stage.fill_entry_keys_ms
+                          << ", gpu_b_stage_sort_by_key_ms=" << gpu_b_stage.sort_by_key_ms
+                          << ", gpu_b_stage_reduce_by_key_ms=" << gpu_b_stage.reduce_by_key_ms
+                          << ", gpu_b_stage_tile_index_ms=" << gpu_b_stage.tile_index_ms
+                          << ", gpu_b_stage_tile_csr_ptr_ms=" << gpu_b_stage.tile_csr_ptr_ms
+                          << ", gpu_b_stage_write_entries_ms=" << gpu_b_stage.write_entries_ms
+                          << ", gpu_b_stage_dense_flags_ms=" << gpu_b_stage.dense_flags_ms
+                          << ", gpu_b_stage_mask_dense_ms=" << gpu_b_stage.mask_dense_ms
+                          << ", gpu_b_stage_narrow_mask_ms=" << gpu_b_stage.narrow_mask_ms
+                          << ", gpu_b_stage_d2d_output_copy_ms=" << gpu_b_stage.d2d_output_copy_ms;
+            }
+            std::cout << ", cpu_over_gpu=";
             if (!gpu_only) {
                 std::cout << (gpu_a_ms > 0.0 ? cpu_a_ms / gpu_a_ms : 0.0);
             }
@@ -466,7 +769,9 @@ int run_matrix(const std::string &path,
 void usage(const char *prog) {
     std::cerr << "Usage: " << prog
               << " [-d|--device N] [-aat <0|1>] [-tau R] [--tile-m M] [--tile-n N]\n"
-              << "       [--gpu-only] [--check] [--timing-only] [--host-output|--device-output] <matrix.mtx>...\n";
+              << "       [--gpu-only] [--check] [--timing-only] [--repeat N] [--profile-stages]\n"
+              << "       [--host-output|--device-output] [--batch-spec <fig8-csv>] [--matrix-dir <path>]\n"
+              << "       <matrix.mtx>...\n";
 }
 
 }  // namespace
@@ -480,6 +785,10 @@ int main(int argc, char **argv) {
     bool timing_only = true;
     bool gpu_only = false;
     bool device_output = true;
+    bool profile_stages = false;
+    int repeat = 5;
+    std::string batch_spec_path;
+    std::string matrix_dir = ".";
     std::vector<std::string> paths;
 
     for (int i = 1; i < argc; ++i) {
@@ -523,10 +832,30 @@ int main(int argc, char **argv) {
             timing_only = true;
         } else if (arg == "--gpu-only") {
             gpu_only = true;
+        } else if (arg == "--profile-stages") {
+            profile_stages = true;
+        } else if (arg == "--repeat") {
+            if (++i >= argc) {
+                usage(argv[0]);
+                return 1;
+            }
+            repeat = std::atoi(argv[i]);
         } else if (arg == "--device-output") {
             device_output = true;
         } else if (arg == "--host-output") {
             device_output = false;
+        } else if (arg == "--batch-spec") {
+            if (++i >= argc) {
+                usage(argv[0]);
+                return 1;
+            }
+            batch_spec_path = argv[i];
+        } else if (arg == "--matrix-dir") {
+            if (++i >= argc) {
+                usage(argv[0]);
+                return 1;
+            }
+            matrix_dir = argv[i];
         } else {
             paths.push_back(arg);
         }
@@ -536,7 +865,15 @@ int main(int argc, char **argv) {
         std::cerr << "Error: -aat must be 0 or 1\n";
         return 1;
     }
-    if (paths.empty()) {
+    if (repeat <= 0) {
+        std::cerr << "Error: --repeat must be >= 1\n";
+        return 1;
+    }
+    if (!batch_spec_path.empty() && !paths.empty()) {
+        std::cerr << "Error: --batch-spec cannot be used with positional matrix paths\n";
+        return 1;
+    }
+    if (batch_spec_path.empty() && paths.empty()) {
         usage(argv[0]);
         return 1;
     }
@@ -544,8 +881,34 @@ int main(int argc, char **argv) {
     try {
         CUDA_CHECK(cudaSetDevice(device));
         int failures = 0;
-        for (const std::string &path : paths) {
-            failures += run_matrix(path, tile_m, tile_n, aat, tau, timing_only, gpu_only, device_output);
+        if (!batch_spec_path.empty()) {
+            const auto specs = load_batch_specs(batch_spec_path, matrix_dir);
+            for (size_t idx = 0; idx < specs.size(); ++idx) {
+                const auto &spec = specs[idx];
+                std::cout << "[batch "
+                          << (idx + 1) << "/" << specs.size()
+                          << "] " << spec.matrix_name
+                          << ", tile=" << spec.tile_m << "x" << spec.tile_n
+                          << ", path=" << spec.matrix_path << "\n";
+                try {
+                    failures += run_matrix(spec.matrix_path, spec.tile_m, spec.tile_n, aat, tau,
+                                          timing_only, gpu_only, device_output, repeat, profile_stages);
+                } catch (const std::exception &e) {
+                    ++failures;
+                    std::cerr << "Error: failed matrix " << spec.matrix_name
+                              << ": " << e.what() << "\n";
+                }
+            }
+        } else {
+            for (const std::string &path : paths) {
+                try {
+                    failures += run_matrix(path, tile_m, tile_n, aat, tau, timing_only,
+                                          gpu_only, device_output, repeat, profile_stages);
+                } catch (const std::exception &e) {
+                    ++failures;
+                    std::cerr << "Error: failed matrix " << path << ": " << e.what() << "\n";
+                }
+            }
         }
         return failures == 0 ? 0 : 1;
     } catch (const std::exception &e) {

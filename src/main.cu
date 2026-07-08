@@ -55,9 +55,11 @@ int main(int argc, char ** argv)
     cudaDeviceProp deviceProp;
     cudaGetDeviceProperties(&deviceProp, device_id);
 
+#ifndef FLEX_DISABLE_PERSISTING_L2
     // Set aside 50% of L2 cache for persisting accesses 
     size_t size = min( int(deviceProp.l2CacheSize * 0.80) , deviceProp.persistingL2CacheMaxSize );
     cudaDeviceSetLimit( cudaLimitPersistingL2CacheSize, size); 
+#endif
     int clock_rate_khz = 0;
     cudaDeviceGetAttribute(&clock_rate_khz, cudaDevAttrClockRate, device_id);
 
@@ -236,14 +238,18 @@ int main(int argc, char ** argv)
         printf("  CSR2Tile Backend         : %s\n", csr2tile_backend_name);
 
 #if TIMING
+        double time_conversion_h2d = 0.0;
+        double *time_conversion_h2d_ptr = &time_conversion_h2d;
         gettimeofday(&t1, NULL);
+#else
+        double *time_conversion_h2d_ptr = NULL;
 #endif
 
         if (csr2tile_mode == CSR2TILE_GPU_DEVICE)
         {
             try
             {
-                gpu_csr2tile::gpu_csr2tile_row_major_device(matrixA, TILE_SIZE_M, TILE_SIZE_N);
+                gpu_csr2tile::gpu_csr2tile_row_major_device(matrixA, TILE_SIZE_M, TILE_SIZE_N, time_conversion_h2d_ptr);
             }
             catch (const std::exception &e)
             {
@@ -258,7 +264,16 @@ int main(int argc, char ** argv)
 
 #if TIMING
         gettimeofday(&t2, NULL);
-        double time_conversion = (t2.tv_sec - t1.tv_sec) * 1000.0 + (t2.tv_usec - t1.tv_usec) / 1000.0;
+        double time_conversion_total = (t2.tv_sec - t1.tv_sec) * 1000.0 + (t2.tv_usec - t1.tv_usec) / 1000.0;
+        double time_conversion = time_conversion_total;
+        if (csr2tile_mode == CSR2TILE_GPU_DEVICE)
+        {
+            time_conversion -= time_conversion_h2d;
+            if (time_conversion < 0.0)
+            {
+                time_conversion = 0.0;
+            }
+        }
         printf("  Format Conversion        : %.2f ms\n", time_conversion);
 #endif
 

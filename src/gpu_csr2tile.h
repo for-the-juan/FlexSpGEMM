@@ -14,6 +14,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <chrono>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -107,6 +108,36 @@ struct DeviceFullTileBuild {
     thrust::device_vector<int> d_tile_dense_ready;
     thrust::device_vector<MAT_VAL_TYPE> d_dense_data;
 };
+
+struct Csr2TileStageTimes {
+    double h2d_ms = 0.0;
+    double row_structure_ms = 0.0;
+    double fill_entry_keys_ms = 0.0;
+    double sort_by_key_ms = 0.0;
+    double reduce_by_key_ms = 0.0;
+    double tile_index_ms = 0.0;
+    double tile_csr_ptr_ms = 0.0;
+    double write_entries_ms = 0.0;
+    double dense_flags_ms = 0.0;
+    double mask_dense_ms = 0.0;
+    double narrow_mask_ms = 0.0;
+    double d2d_output_copy_ms = 0.0;
+    double build_total_ms = 0.0;
+};
+
+using StageClock = std::chrono::steady_clock;
+
+inline StageClock::time_point stage_now() {
+    return StageClock::now();
+}
+
+inline double stage_elapsed_ms(StageClock::time_point start, bool sync_device) {
+    if (sync_device) {
+        GPU_CSR2TILE_CHECK(cudaDeviceSynchronize());
+    }
+    const auto end = StageClock::now();
+    return std::chrono::duration<double, std::milli>(end - start).count();
+}
 
 struct EntryToTileKey {
     int tile_area;
@@ -528,7 +559,9 @@ template <typename ColT, typename MaskT, bool StoreFlatLocalOffset>
 inline DeviceFullTileBuild<ColT, MaskT> build_full_tile_device(const DeviceCsr &csr,
                                                                int tile_row_size,
                                                                int tile_col_size,
-                                                               bool column_major_order) {
+                                                               bool column_major_order,
+                                                               Csr2TileStageTimes *stage_times = nullptr) {
+    const auto build_start = stage_now();
     DeviceFullTileBuild<ColT, MaskT> out;
     out.tile_rows = ceil_div_int(csr.rows, tile_row_size);
     out.tile_cols = ceil_div_int(csr.cols, tile_col_size);
@@ -551,6 +584,7 @@ inline DeviceFullTileBuild<ColT, MaskT> build_full_tile_device(const DeviceCsr &
 
     thrust::device_vector<Key> entry_keys(static_cast<size_t>(csr.nnz));
     thrust::device_vector<MAT_VAL_TYPE> entry_values(static_cast<size_t>(csr.nnz));
+    auto stage_start = stage_now();
     fill_entry_keys_kernel<<<row_blocks, threads>>>(
         csr.rows,
         thrust::raw_pointer_cast(csr.rowptr.data()),
@@ -564,14 +598,22 @@ inline DeviceFullTileBuild<ColT, MaskT> build_full_tile_device(const DeviceCsr &
         thrust::raw_pointer_cast(entry_keys.data()),
         thrust::raw_pointer_cast(entry_values.data()));
     GPU_CSR2TILE_CHECK(cudaGetLastError());
+    if (stage_times) {
+        stage_times->fill_entry_keys_ms += stage_elapsed_ms(stage_start, true);
+    }
 
+    stage_start = stage_now();
     thrust::sort_by_key(thrust::device, entry_keys.begin(), entry_keys.end(), entry_values.begin());
+    if (stage_times) {
+        stage_times->sort_by_key_ms += stage_elapsed_ms(stage_start, false);
+    }
 
     auto tile_key_begin = thrust::make_transform_iterator(entry_keys.begin(), EntryToTileKey{tile_area});
     auto tile_key_end = thrust::make_transform_iterator(entry_keys.end(), EntryToTileKey{tile_area});
 
     thrust::device_vector<Key> unique_keys(entry_keys.size());
     thrust::device_vector<int> counts(entry_keys.size());
+    stage_start = stage_now();
     auto ends = thrust::reduce_by_key(
         thrust::device,
         tile_key_begin,
@@ -579,6 +621,9 @@ inline DeviceFullTileBuild<ColT, MaskT> build_full_tile_device(const DeviceCsr &
         thrust::make_constant_iterator(1),
         unique_keys.begin(),
         counts.begin());
+    if (stage_times) {
+        stage_times->reduce_by_key_ms += stage_elapsed_ms(stage_start, false);
+    }
     out.num_tiles = static_cast<int>(ends.first - unique_keys.begin());
     unique_keys.resize(static_cast<size_t>(out.num_tiles));
     counts.resize(static_cast<size_t>(out.num_tiles));
@@ -594,6 +639,7 @@ inline DeviceFullTileBuild<ColT, MaskT> build_full_tile_device(const DeviceCsr &
     out.d_tile_dense_ready.resize(static_cast<size_t>(out.num_tiles));
 
     const int key_blocks = ceil_div_int(out.num_tiles, threads);
+    stage_start = stage_now();
     count_primary_kernel<<<key_blocks, threads>>>(
         thrust::raw_pointer_cast(unique_keys.data()),
         out.num_tiles,
@@ -609,7 +655,11 @@ inline DeviceFullTileBuild<ColT, MaskT> build_full_tile_device(const DeviceCsr &
         thrust::raw_pointer_cast(out.d_secondary_idx.data()));
     GPU_CSR2TILE_CHECK(cudaGetLastError());
     thrust::inclusive_scan(thrust::device, counts.begin(), counts.end(), out.d_tile_nnz.begin() + 1);
+    if (stage_times) {
+        stage_times->tile_index_ms += stage_elapsed_ms(stage_start, false);
+    }
 
+    stage_start = stage_now();
     build_tile_csr_ptr_from_entries_kernel<<<out.num_tiles, kTileThreadsPerBlock, tile_row_size * sizeof(int)>>>(
         out.num_tiles,
         thrust::raw_pointer_cast(out.d_tile_nnz.data()),
@@ -619,8 +669,12 @@ inline DeviceFullTileBuild<ColT, MaskT> build_full_tile_device(const DeviceCsr &
         tile_row_size,
         thrust::raw_pointer_cast(out.d_tile_csr_ptr.data()));
     GPU_CSR2TILE_CHECK(cudaGetLastError());
+    if (stage_times) {
+        stage_times->tile_csr_ptr_ms += stage_elapsed_ms(stage_start, true);
+    }
 
     const int nnz_blocks = ceil_div_int(csr.nnz, threads);
+    stage_start = stage_now();
     write_tile_entries_kernel<ColT, StoreFlatLocalOffset><<<nnz_blocks, threads>>>(
         csr.nnz,
         thrust::raw_pointer_cast(entry_keys.data()),
@@ -630,9 +684,13 @@ inline DeviceFullTileBuild<ColT, MaskT> build_full_tile_device(const DeviceCsr &
         thrust::raw_pointer_cast(out.d_tile_csr_col.data()),
         thrust::raw_pointer_cast(out.d_tile_csr_value.data()));
     GPU_CSR2TILE_CHECK(cudaGetLastError());
+    if (stage_times) {
+        stage_times->write_entries_ms += stage_elapsed_ms(stage_start, true);
+    }
 
     const int dense_threshold = static_cast<int>((static_cast<float>(TILE_DENSE_THRESHOLD) / 10.0f) *
                                                  static_cast<float>(tile_area));
+    stage_start = stage_now();
     mark_dense_tiles_kernel<<<key_blocks, threads>>>(
         out.num_tiles,
         thrust::raw_pointer_cast(counts.data()),
@@ -648,6 +706,9 @@ inline DeviceFullTileBuild<ColT, MaskT> build_full_tile_device(const DeviceCsr &
         tile_area,
         thrust::raw_pointer_cast(out.d_tile_dense_ready.data()));
     GPU_CSR2TILE_CHECK(cudaGetLastError());
+    if (stage_times) {
+        stage_times->dense_flags_ms += stage_elapsed_ms(stage_start, true);
+    }
 
     const int mask_len = out.num_tiles * tile_row_size * mask_words_per_row;
     const int mask_words_per_tile = tile_row_size * mask_words_per_row;
@@ -655,6 +716,7 @@ inline DeviceFullTileBuild<ColT, MaskT> build_full_tile_device(const DeviceCsr &
     out.d_mask.resize(static_cast<size_t>(mask_len));
     out.d_dense_data.assign(static_cast<size_t>(out.dense_tile_count) * tile_area, 0);
 
+    stage_start = stage_now();
     build_mask_and_dense_by_tile_kernel<MaskT><<<out.num_tiles, kTileThreadsPerBlock, mask_words_per_tile * sizeof(unsigned int)>>>(
         out.num_tiles,
         thrust::raw_pointer_cast(out.d_tile_nnz.data()),
@@ -669,16 +731,26 @@ inline DeviceFullTileBuild<ColT, MaskT> build_full_tile_device(const DeviceCsr &
         thrust::raw_pointer_cast(d_mask_work.data()),
         thrust::raw_pointer_cast(out.d_dense_data.data()));
     GPU_CSR2TILE_CHECK(cudaGetLastError());
+    if (stage_times) {
+        stage_times->mask_dense_ms += stage_elapsed_ms(stage_start, true);
+    }
 
     if (mask_len > 0) {
         const int mask_blocks = ceil_div_int(mask_len, threads);
+        stage_start = stage_now();
         narrow_mask_kernel<MaskT><<<mask_blocks, threads>>>(
             mask_len,
             thrust::raw_pointer_cast(d_mask_work.data()),
             thrust::raw_pointer_cast(out.d_mask.data()));
         GPU_CSR2TILE_CHECK(cudaGetLastError());
+        if (stage_times) {
+            stage_times->narrow_mask_ms += stage_elapsed_ms(stage_start, true);
+        }
     }
 
+    if (stage_times) {
+        stage_times->build_total_ms += stage_elapsed_ms(build_start, false);
+    }
     return out;
 }
 
@@ -851,9 +923,14 @@ inline FullTileBuild<ColT, MaskT> build_full_tile(const DeviceCsr &csr,
     return out;
 }
 
-inline void gpu_csr2tile_row_major(SMatrixA *matrix, int tile_size_m, int tile_size_n) {
+inline void gpu_csr2tile_row_major(SMatrixA *matrix, int tile_size_m, int tile_size_n, double *copy_ms = nullptr) {
+    const auto copy_start = std::chrono::steady_clock::now();
     DeviceCsr csr = copy_to_device(
         matrix->m, matrix->n, matrix->nnz, matrix->rowpointer, matrix->columnindex, matrix->value);
+    if (copy_ms) {
+        const auto copy_end = std::chrono::steady_clock::now();
+        *copy_ms = std::chrono::duration<double, std::milli>(copy_end - copy_start).count();
+    }
     FullTileBuild<TILE_CSR_COL_TYPE_A, TILE_MASK_TYPE_A> build =
         build_full_tile<TILE_CSR_COL_TYPE_A, TILE_MASK_TYPE_A, true>(
             csr, tile_size_m, tile_size_n, false);
@@ -876,12 +953,28 @@ inline void gpu_csr2tile_row_major(SMatrixA *matrix, int tile_size_m, int tile_s
     matrix->csc_tile_rowidx = nullptr;
 }
 
-inline void gpu_csr2tile_row_major_device(SMatrixA *matrix, int tile_size_m, int tile_size_n) {
+inline void gpu_csr2tile_row_major_device(SMatrixA *matrix,
+                                          int tile_size_m,
+                                          int tile_size_n,
+                                          double *copy_ms = nullptr,
+                                          Csr2TileStageTimes *stage_times = nullptr) {
+    if (stage_times) {
+        *stage_times = Csr2TileStageTimes{};
+    }
+    const auto copy_start = std::chrono::steady_clock::now();
     DeviceCsr csr = copy_to_device(
         matrix->m, matrix->n, matrix->nnz, matrix->rowpointer, matrix->columnindex, matrix->value);
+    const auto copy_end = std::chrono::steady_clock::now();
+    const double h2d_ms = std::chrono::duration<double, std::milli>(copy_end - copy_start).count();
+    if (copy_ms) {
+        *copy_ms = h2d_ms;
+    }
+    if (stage_times) {
+        stage_times->h2d_ms = h2d_ms;
+    }
     DeviceFullTileBuild<TILE_CSR_COL_TYPE_A, TILE_MASK_TYPE_A> build =
         build_full_tile_device<TILE_CSR_COL_TYPE_A, TILE_MASK_TYPE_A, true>(
-            csr, tile_size_m, tile_size_n, false);
+            csr, tile_size_m, tile_size_n, false, stage_times);
 
     matrix->tilem = build.tile_rows;
     matrix->tilen = build.tile_cols;
@@ -900,6 +993,7 @@ inline void gpu_csr2tile_row_major_device(SMatrixA *matrix, int tile_size_m, int
     matrix->csc_tile_ptr = nullptr;
     matrix->csc_tile_rowidx = nullptr;
 
+    const auto d2d_start = stage_now();
     matrix->d_tile_ptr = cuda_malloc_copy_device(build.d_ptr);
     matrix->d_tile_columnidx = cuda_malloc_copy_device(build.d_secondary_idx);
     matrix->d_tile_nnz = cuda_malloc_copy_device(build.d_tile_nnz);
@@ -909,14 +1003,22 @@ inline void gpu_csr2tile_row_major_device(SMatrixA *matrix, int tile_size_m, int
     matrix->d_mask = cuda_malloc_copy_device(build.d_mask);
     matrix->d_tile_dense_ready = cuda_malloc_copy_device(build.d_tile_dense_ready);
     matrix->d_dense_data = build.dense_tile_count > 0 ? cuda_malloc_copy_device(build.d_dense_data) : nullptr;
+    if (stage_times) {
+        stage_times->d2d_output_copy_ms += stage_elapsed_ms(d2d_start, true);
+    }
     matrix->device_tile_ready = 1;
 }
 
-inline void gpu_csr2tile_col_major(SMatrixB *matrix, int tile_size_m, int tile_size_n) {
+inline void gpu_csr2tile_col_major(SMatrixB *matrix, int tile_size_m, int tile_size_n, double *copy_ms = nullptr) {
     const int tile_row_size = tile_size_n;
     const int tile_col_size = tile_size_m;
+    const auto copy_start = std::chrono::steady_clock::now();
     DeviceCsr csr = copy_to_device(
         matrix->m, matrix->n, matrix->nnz, matrix->rowpointer, matrix->columnindex, matrix->value);
+    if (copy_ms) {
+        const auto copy_end = std::chrono::steady_clock::now();
+        *copy_ms = std::chrono::duration<double, std::milli>(copy_end - copy_start).count();
+    }
 
     TileStructure row_structure = build_tile_structure(csr, tile_row_size, tile_col_size, false);
     FullTileBuild<TILE_CSR_COL_TYPE_B, TILE_MASK_TYPE_B> csc_build =
@@ -949,16 +1051,36 @@ inline void gpu_csr2tile_col_major(SMatrixB *matrix, int tile_size_m, int tile_s
     }
 }
 
-inline void gpu_csr2tile_col_major_device(SMatrixB *matrix, int tile_size_m, int tile_size_n) {
+inline void gpu_csr2tile_col_major_device(SMatrixB *matrix,
+                                          int tile_size_m,
+                                          int tile_size_n,
+                                          double *copy_ms = nullptr,
+                                          Csr2TileStageTimes *stage_times = nullptr) {
+    if (stage_times) {
+        *stage_times = Csr2TileStageTimes{};
+    }
     const int tile_row_size = tile_size_n;
     const int tile_col_size = tile_size_m;
+    const auto copy_start = std::chrono::steady_clock::now();
     DeviceCsr csr = copy_to_device(
         matrix->m, matrix->n, matrix->nnz, matrix->rowpointer, matrix->columnindex, matrix->value);
+    const auto copy_end = std::chrono::steady_clock::now();
+    const double h2d_ms = std::chrono::duration<double, std::milli>(copy_end - copy_start).count();
+    if (copy_ms) {
+        *copy_ms = h2d_ms;
+    }
+    if (stage_times) {
+        stage_times->h2d_ms = h2d_ms;
+    }
 
+    const auto row_structure_start = stage_now();
     DeviceTileStructure row_structure = build_tile_structure_device(csr, tile_row_size, tile_col_size, false);
+    if (stage_times) {
+        stage_times->row_structure_ms += stage_elapsed_ms(row_structure_start, false);
+    }
     DeviceFullTileBuild<TILE_CSR_COL_TYPE_B, TILE_MASK_TYPE_B> csc_build =
         build_full_tile_device<TILE_CSR_COL_TYPE_B, TILE_MASK_TYPE_B, false>(
-            csr, tile_row_size, tile_col_size, true);
+            csr, tile_row_size, tile_col_size, true, stage_times);
 
     matrix->tilem = ceil_div_int(matrix->m, tile_row_size);
     matrix->tilen = ceil_div_int(matrix->n, tile_col_size);
@@ -977,6 +1099,7 @@ inline void gpu_csr2tile_col_major_device(SMatrixB *matrix, int tile_size_m, int
     matrix->tile_dense_ready = nullptr;
     matrix->dense_data = nullptr;
 
+    const auto d2d_start = stage_now();
     matrix->d_tile_ptr = cuda_malloc_copy_device(row_structure.d_ptr);
     matrix->d_tile_columnidx = cuda_malloc_copy_device(row_structure.d_secondary_idx);
     matrix->d_csc_tile_ptr = cuda_malloc_copy_device(csc_build.d_ptr);
@@ -988,6 +1111,9 @@ inline void gpu_csr2tile_col_major_device(SMatrixB *matrix, int tile_size_m, int
     matrix->d_mask = cuda_malloc_copy_device(csc_build.d_mask);
     matrix->d_tile_dense_ready = cuda_malloc_copy_device(csc_build.d_tile_dense_ready);
     matrix->d_dense_data = csc_build.dense_tile_count > 0 ? cuda_malloc_copy_device(csc_build.d_dense_data) : nullptr;
+    if (stage_times) {
+        stage_times->d2d_output_copy_ms += stage_elapsed_ms(d2d_start, true);
+    }
     matrix->device_tile_ready = 1;
 }
 

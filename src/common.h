@@ -152,7 +152,7 @@ static_assert(std::is_same<MAT_VAL_TYPE, VALUE_TYPE>::value,
 #define DEBUG_PRINT_CUDA(...) ((void)0)
 #endif
 
-#define REPEAT_NUM 1
+#define REPEAT_NUM 5
 
 #ifndef TIMING
 #define TIMING 1
@@ -188,6 +188,13 @@ static_assert(std::is_same<MAT_VAL_TYPE, VALUE_TYPE>::value,
     #define STEP4_TC_THREADS 128
 #endif
 
+#ifdef FLEX_RUNTIME_TILE_TYPES
+    typedef uint16_t TILE_CSR_PTR_TYPE;
+    typedef uint16_t TILE_CSR_COL_TYPE_A;
+    typedef uint8_t TILE_CSR_COL_TYPE_B;
+    typedef uint8_t TILE_MASK_TYPE_A;
+    typedef uint8_t TILE_MASK_TYPE_B;
+#else
 #if TILE_SIZE_M * TILE_SIZE_N <= 256 && TILE_SIZE_M * TILE_SIZE_M <= 256
     typedef uint8_t TILE_CSR_PTR_TYPE;
 #elif TILE_SIZE_M * TILE_SIZE_N <= 65536 && TILE_SIZE_M * TILE_SIZE_M <= 65536
@@ -227,6 +234,7 @@ typedef uint32_t INTERSEC_BITMASK_TYPE;
     typedef uint16_t TILE_MASK_TYPE_B;
 #else  // TILE_SIZE_M >= 32
     typedef uint32_t TILE_MASK_TYPE_B;
+#endif
 #endif
 
 #define MaskBitsA (sizeof(TILE_MASK_TYPE_A) * 8)

@@ -20,6 +20,7 @@
 #include <thrust/transform.h>
 #include <thrust/transform_reduce.h>
 
+#include <algorithm>
 #include <array>
 #include <iomanip>
 #include <iostream>
@@ -37,6 +38,15 @@ const int kAProbeTileSizes[][2] = {
 const int kCProbeTileMs[] = {8, 16, 32};
 constexpr int kCProbeHashCapacity = 4096;
 constexpr int kCProbeAvgAllSegmentLimit = 10;
+
+// cuSPARSE API compatibility.
+#if !defined(CUSPARSE_SPGEMM_ALG2)
+#if defined(CUSPARSE_SPGEMM_CSR_ALG_NONDETERMINITIC)
+#define CUSPARSE_SPGEMM_ALG2 CUSPARSE_SPGEMM_CSR_ALG_NONDETERMINITIC
+#else
+#define CUSPARSE_SPGEMM_ALG2 CUSPARSE_SPGEMM_DEFAULT
+#endif
+#endif
 
 std::string cuda_error_string(cudaError_t err, const char *expr, const char *file, int line) {
     std::ostringstream os;
@@ -129,7 +139,9 @@ struct MatrixResult {
     int rows = 0;
     int cols = 0;
     long long nnz = 0;
+    int probe_nnz_limit = 100000;
     int symmetric = 0;
+    int repeat = 1;
     double load_ms = 0.0;
     double h2d_ms = 0.0;
     double a_probe_ms = 0.0;
@@ -1431,7 +1443,6 @@ SpGemmStats tile_spgemm_cusparse(cusparseHandle_t handle, const TileCsrGpu &a, c
     float alpha = 1.0f;
     float beta = 0.0f;
     const cusparseSpGEMMAlg_t alg = CUSPARSE_SPGEMM_ALG2;
-    const float chunk_fraction = 0.01f;
 
     CUDA_CHECK(cudaMalloc(reinterpret_cast<void **>(&d_c_rowptr), static_cast<size_t>(a.rows + 1) * sizeof(int)));
 
@@ -1507,7 +1518,7 @@ SpGemmStats tile_spgemm_cusparse(cusparseHandle_t handle, const TileCsrGpu &a, c
         &buffer_size1,
         d_buffer1));
 
-    CUSPARSE_CHECK(cusparseSpGEMM_estimateMemory(
+    CUSPARSE_CHECK(cusparseSpGEMM_compute(
         handle,
         CUSPARSE_OPERATION_NON_TRANSPOSE,
         CUSPARSE_OPERATION_NON_TRANSPOSE,
@@ -1519,29 +1530,9 @@ SpGemmStats tile_spgemm_cusparse(cusparseHandle_t handle, const TileCsrGpu &a, c
         CUDA_R_32F,
         alg,
         desc,
-        chunk_fraction,
-        &buffer_size3,
-        nullptr,
-        &buffer_size2));
-    if (buffer_size3 > 0) {
-        CUDA_CHECK(cudaMalloc(&d_buffer3, buffer_size3));
-    }
-    CUSPARSE_CHECK(cusparseSpGEMM_estimateMemory(
-        handle,
-        CUSPARSE_OPERATION_NON_TRANSPOSE,
-        CUSPARSE_OPERATION_NON_TRANSPOSE,
-        &alpha,
-        mat_a,
-        mat_b,
-        &beta,
-        mat_c,
-        CUDA_R_32F,
-        alg,
-        desc,
-        chunk_fraction,
-        &buffer_size3,
-        d_buffer3,
-        &buffer_size2));
+        &buffer_size2,
+        nullptr));
+    buffer_size3 = 0;
     if (buffer_size2 > 0) {
         CUDA_CHECK(cudaMalloc(&d_buffer2, buffer_size2));
     }
@@ -1857,15 +1848,34 @@ void run_csr2tile_pattern_gpu(const DeviceCsr &csr, MatrixResult *result) {
     result->csr2tile_tiles = num_tiles;
 }
 
-DeviceCsr copy_to_device(const bench::CsrMatrix &matrix, double *h2d_ms) {
+DeviceCsr copy_to_device(const bench::CsrMatrix &matrix, int probe_nnz_limit, double *h2d_ms) {
     DeviceCsr csr;
     csr.rows = matrix.rows;
     csr.cols = matrix.cols;
-    csr.nnz = static_cast<int>(matrix.nnz);
+    const int probe_nnz = (probe_nnz_limit <= 0)
+                             ? static_cast<int>(matrix.nnz)
+                             : static_cast<int>(std::min(matrix.nnz,
+                                                         static_cast<long long>(probe_nnz_limit)));
+
+    std::vector<int> rowptr(matrix.rowptr.size(), probe_nnz);
+    if (probe_nnz < matrix.nnz) {
+        const auto it = std::lower_bound(matrix.rowptr.begin(), matrix.rowptr.end(), probe_nnz);
+        const size_t limit_row = static_cast<size_t>(std::distance(matrix.rowptr.begin(), it));
+        const size_t copy_end =
+            (matrix.rowptr[limit_row] == probe_nnz) ? (limit_row + 1) : limit_row;
+        std::copy(matrix.rowptr.begin(), matrix.rowptr.begin() + copy_end, rowptr.begin());
+        if (copy_end < rowptr.size()) {
+            rowptr[copy_end] = probe_nnz;
+        }
+    } else {
+        rowptr = matrix.rowptr;
+    }
+
+    csr.nnz = probe_nnz;
+    csr.rowptr = rowptr;
+    csr.colidx.assign(matrix.colidx.begin(), matrix.colidx.begin() + static_cast<size_t>(probe_nnz));
 
     bench::Timer timer;
-    csr.rowptr = matrix.rowptr;
-    csr.colidx = matrix.colidx;
     CUDA_CHECK(cudaDeviceSynchronize());
     *h2d_ms = timer.elapsed_ms();
     return csr;
@@ -1873,7 +1883,7 @@ DeviceCsr copy_to_device(const bench::CsrMatrix &matrix, double *h2d_ms) {
 
 void print_csv_header() {
     std::cout
-        << "matrix,rows,cols,nnz,symmetric,load_ms,h2d_ms,"
+        << "matrix,rows,cols,nnz,symmetric,repeat,load_ms,h2d_ms,"
         << "gpu_a_probe_ms,gpu_a_tiles_16x16,"
         << "gpu_c_build_ms,gpu_c_feature_ms,gpu_c_total_ms,"
         << "gpu_c_tiles_8,gpu_c_avg_8,gpu_c_max_8,"
@@ -1889,6 +1899,7 @@ void print_csv_row(const MatrixResult &r) {
               << r.cols << ','
               << r.nnz << ','
               << r.symmetric << ','
+              << r.repeat << ','
               << std::fixed << std::setprecision(4)
               << r.load_ms << ','
               << r.h2d_ms << ','
@@ -1916,6 +1927,8 @@ void usage(const char *prog) {
     std::cerr << "Usage: " << prog
               << " [--device N] [--aat] [--csv] [--skip-c-probe]"
               << " [--a-probe-impl merge8|packed|sort3]"
+              << " [--repeat N]"
+              << " [--probe-nnz-limit N]"
               << " [--c-probe-impl hash|hash-avg|cusparse] <matrix.mtx>...\n";
 }
 
@@ -1928,6 +1941,8 @@ int main(int argc, char **argv) {
     bool skip_c_probe = false;
     AProbeImpl a_probe_impl = AProbeImpl::Merge8;
     CProbeImpl c_probe_impl = CProbeImpl::HashAvg;
+    int repeat = 5;
+    int probe_nnz_limit = 100000;
     std::vector<std::string> matrix_paths;
 
     for (int i = 1; i < argc; ++i) {
@@ -1958,6 +1973,26 @@ int main(int argc, char **argv) {
                 a_probe_impl = AProbeImpl::Sort3;
             } else {
                 usage(argv[0]);
+                return 1;
+            }
+        } else if (arg == "--repeat") {
+            if (++i >= argc) {
+                usage(argv[0]);
+                return 1;
+            }
+            repeat = std::atoi(argv[i]);
+            if (repeat < 1) {
+                std::cerr << "Error: --repeat requires a positive integer\n";
+                return 1;
+            }
+        } else if (arg == "--probe-nnz-limit") {
+            if (++i >= argc) {
+                usage(argv[0]);
+                return 1;
+            }
+            probe_nnz_limit = std::atoi(argv[i]);
+            if (probe_nnz_limit < 0) {
+                std::cerr << "Error: --probe-nnz-limit requires a non-negative integer\n";
                 return 1;
             }
         } else if (arg == "--c-probe-impl") {
@@ -1999,6 +2034,7 @@ int main(int argc, char **argv) {
             std::cout << "A probe impl: " << a_probe_impl_name(a_probe_impl) << "\n";
             std::cout << "C probe mode: " << (aat ? "A*A^T" : "A*A") << "\n";
             std::cout << "C probe impl: " << c_probe_impl_name(c_probe_impl) << "\n";
+            std::cout << "A/C probe nnz limit: " << probe_nnz_limit << "\n";
             if (skip_c_probe) {
                 std::cout << "C probe skipped\n";
             }
@@ -2009,6 +2045,8 @@ int main(int argc, char **argv) {
         for (const std::string &path : matrix_paths) {
             MatrixResult result;
             result.matrix = bench::basename(path);
+            result.repeat = repeat;
+            result.probe_nnz_limit = probe_nnz_limit;
 
             bench::Timer load_timer;
             bench::CsrMatrix matrix = bench::load_matrix_market(path);
@@ -2022,14 +2060,52 @@ int main(int argc, char **argv) {
                 throw std::runtime_error("A*A mode requires square matrices: " + path);
             }
 
-            DeviceCsr csr = copy_to_device(matrix, &result.h2d_ms);
-            BaseTileAccumGpu shared_base8;
-            BaseTileAccumGpu *shared_base8_ptr = (a_probe_impl == AProbeImpl::Merge8) ? &shared_base8 : nullptr;
-            run_a_probe_gpu(csr, a_probe_impl, &result, shared_base8_ptr);
-            if (!skip_c_probe) {
-                run_c_probe_gpu(csr, aat, c_probe_impl, shared_base8_ptr, &result);
+            DeviceCsr csr = copy_to_device(matrix, probe_nnz_limit, &result.h2d_ms);
+            double total_a_probe_ms = 0.0;
+            double total_c_build_ms = 0.0;
+            double total_c_feature_ms = 0.0;
+            double total_csr2tile_ms = 0.0;
+            for (int r = 0; r < repeat; ++r) {
+                MatrixResult sample;
+                BaseTileAccumGpu shared_base8;
+                BaseTileAccumGpu *shared_base8_ptr =
+                    (a_probe_impl == AProbeImpl::Merge8) ? &shared_base8 : nullptr;
+                run_a_probe_gpu(csr, a_probe_impl, &sample, shared_base8_ptr);
+                if (!skip_c_probe) {
+                    run_c_probe_gpu(csr, aat, c_probe_impl, shared_base8_ptr, &sample);
+                }
+                run_csr2tile_pattern_gpu(csr, &sample);
+
+                total_a_probe_ms += sample.a_probe_ms;
+                total_c_build_ms += sample.c_build_ms;
+                total_c_feature_ms += sample.c_feature_ms;
+                total_csr2tile_ms += sample.csr2tile_pattern_ms;
+
+                if (r == 0) {
+                    result.a_tiles_16x16 = sample.a_tiles_16x16;
+                    result.c_tiles_8 = sample.c_tiles_8;
+                    result.c_avg_8 = sample.c_avg_8;
+                    result.c_max_8 = sample.c_max_8;
+                    result.c_tiles_16 = sample.c_tiles_16;
+                    result.c_avg_16 = sample.c_avg_16;
+                    result.c_max_16 = sample.c_max_16;
+                    result.c_tiles_32 = sample.c_tiles_32;
+                    result.c_avg_32 = sample.c_avg_32;
+                    result.c_max_32 = sample.c_max_32;
+                    result.c_hash_overflow_rows = sample.c_hash_overflow_rows;
+                    result.c_hash_fallback_rows = sample.c_hash_fallback_rows;
+                    result.csr2tile_tiles = sample.csr2tile_tiles;
+                } else {
+                    result.c_hash_overflow_rows = std::max(
+                        result.c_hash_overflow_rows, sample.c_hash_overflow_rows);
+                    result.c_hash_fallback_rows = std::max(
+                        result.c_hash_fallback_rows, sample.c_hash_fallback_rows);
+                }
             }
-            run_csr2tile_pattern_gpu(csr, &result);
+            result.a_probe_ms = total_a_probe_ms / static_cast<double>(repeat);
+            result.c_build_ms = total_c_build_ms / static_cast<double>(repeat);
+            result.c_feature_ms = total_c_feature_ms / static_cast<double>(repeat);
+            result.csr2tile_pattern_ms = total_csr2tile_ms / static_cast<double>(repeat);
 
             if (csv) {
                 print_csv_row(result);
@@ -2038,6 +2114,7 @@ int main(int argc, char **argv) {
                           << result.rows << "x" << result.cols
                           << ", nnz=" << result.nnz << "\n";
                 std::cout << "  load_ms                 : " << result.load_ms << "\n";
+                std::cout << "  repeat                  : " << result.repeat << "\n";
                 std::cout << "  h2d_ms                  : " << result.h2d_ms << "\n";
                 std::cout << "  gpu_a_probe_ms          : " << result.a_probe_ms
                           << " (16x16 tiles=" << result.a_tiles_16x16 << ")\n";
